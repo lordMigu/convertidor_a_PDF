@@ -14,7 +14,10 @@ from app.schemas.user import UserCreate, UserResponse, UserLogin
 from app.schemas.token import Token
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.config import get_settings
+<<<<<<< HEAD
 from app.api import deps
+=======
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 
 router = APIRouter(
     prefix="/api/v1/auth",
@@ -168,6 +171,7 @@ async def login(
     )
     
     return Token(access_token=access_token, token_type="bearer")
+<<<<<<< HEAD
 
 
 @router.get("/me", response_model=UserResponse)
@@ -176,3 +180,5 @@ async def get_me(current_user: User = Depends(deps.get_current_user)):
     Obtiene la información del usuario actual.
     """
     return current_user
+=======
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100

@@ -1,4 +1,5 @@
 :root {
+<<<<<<< HEAD
     --itb-primary: #2c3e50;
     /* Azul oscuro del EVA */
     --itb-secondary: #3498db;
@@ -21,6 +22,19 @@
     /* Gradiente header */
     --itb-gradient-end: #2c3e50;
     /* Gradiente header */
+=======
+    --itb-primary: #2c3e50;          /* Azul oscuro del EVA */
+    --itb-secondary: #3498db;        /* Azul claro EVA */
+    --itb-accent: #e74c3c;           /* Rojo EVA */
+    --itb-light: #ecf0f1;            /* Fondo claro EVA */
+    --itb-gray: #95a5a6;             /* Texto gris EVA */
+    --itb-dark: #34495e;             /* Fondo oscuro EVA */
+    --itb-border: #bdc3c7;           /* Bordes EVA */
+    --itb-success: #27ae60;          /* Verde EVA */
+    --itb-warning: #f39c12;          /* Naranja EVA */
+    --itb-gradient-start: #1a2530;   /* Gradiente header */
+    --itb-gradient-end: #2c3e50;     /* Gradiente header */
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 * {
@@ -67,7 +81,11 @@ body {
     background-color: white;
     border-radius: 8px;
     padding: 10px;
+<<<<<<< HEAD
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+=======
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 .main-logo a {
@@ -90,8 +108,13 @@ body {
 
 .institution-info p {
     font-size: 0.85rem;
+<<<<<<< HEAD
     color: #e0e0e0;
     /* Cambiado a color sólido */
+=======
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 .user-info {
@@ -125,8 +148,12 @@ body {
 
 .user-info div:last-child div:last-child {
     font-size: 0.8rem;
+<<<<<<< HEAD
     color: #e0e0e0;
     /* Cambiado a color sólido */
+=======
+    opacity: 0.8;
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 /* Breadcrumb navigation idéntico al EVA */
@@ -274,7 +301,11 @@ body {
     border-color: var(--itb-secondary);
     background: white;
     transform: translateY(-5px);
+<<<<<<< HEAD
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+=======
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 .upload-icon {
@@ -352,13 +383,21 @@ body {
     background: white;
     color: var(--itb-primary);
     border: 2px solid var(--itb-border);
+<<<<<<< HEAD
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+=======
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 .btn-secondary:hover {
     background: var(--itb-light);
     border-color: var(--itb-secondary);
+<<<<<<< HEAD
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+=======
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 /* File info display */
@@ -370,7 +409,11 @@ body {
     border-left: 5px solid var(--itb-success);
     display: none;
     animation: fadeIn 0.5s;
+<<<<<<< HEAD
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+=======
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 .file-info.show {
@@ -378,6 +421,7 @@ body {
 }
 
 @keyframes fadeIn {
+<<<<<<< HEAD
     from {
         opacity: 0;
         transform: translateY(10px);
@@ -387,6 +431,10 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+=======
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 .file-header {
@@ -485,7 +533,11 @@ body {
 
 .option-item:hover {
     border-color: var(--itb-secondary);
+<<<<<<< HEAD
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+=======
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     transform: translateY(-3px);
 }
 
@@ -620,7 +672,11 @@ body {
     background: white;
     padding: 8px;
     border-radius: 6px;
+<<<<<<< HEAD
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+=======
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 .footer-section h4 {
@@ -628,7 +684,11 @@ body {
     font-size: 1.2rem;
     margin-bottom: 20px;
     padding-bottom: 10px;
+<<<<<<< HEAD
     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+=======
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     font-weight: 600;
 }
 
@@ -671,9 +731,15 @@ body {
 .footer-bottom {
     text-align: center;
     padding-top: 25px;
+<<<<<<< HEAD
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.7);
+=======
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 .footer-bottom-content {
@@ -692,23 +758,39 @@ body {
         gap: 20px;
         text-align: center;
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     .logo-section {
         flex-direction: column;
         text-align: center;
         gap: 15px;
     }
+<<<<<<< HEAD
 
     .nav-menu {
         flex-wrap: wrap;
     }
 
+=======
+    
+    .nav-menu {
+        flex-wrap: wrap;
+    }
+    
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     .nav-item {
         flex: 1 0 50%;
         border-right: none;
         border-bottom: 1px solid var(--itb-border);
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     .nav-item:nth-child(even) {
         border-left: 1px solid var(--itb-border);
     }
@@ -718,6 +800,7 @@ body {
     .upload-card {
         padding: 30px 20px;
     }
+<<<<<<< HEAD
 
     .upload-icon {
         font-size: 60px;
@@ -727,26 +810,53 @@ body {
         font-size: 1.5rem;
     }
 
+=======
+    
+    .upload-icon {
+        font-size: 60px;
+    }
+    
+    .upload-title {
+        font-size: 1.5rem;
+    }
+    
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     .action-buttons {
         flex-direction: column;
         gap: 15px;
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     .btn {
         width: 100%;
         justify-content: center;
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     .footer-content {
         grid-template-columns: 1fr;
         text-align: center;
         gap: 30px;
     }
+<<<<<<< HEAD
 
     .contact-info li {
         justify-content: center;
     }
 
+=======
+    
+    .contact-info li {
+        justify-content: center;
+    }
+    
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     .footer-section h4 {
         text-align: center;
     }
@@ -757,11 +867,19 @@ body {
         flex: 1 0 100%;
         border-left: none !important;
     }
+<<<<<<< HEAD
 
     .file-details {
         grid-template-columns: 1fr;
     }
 
+=======
+    
+    .file-details {
+        grid-template-columns: 1fr;
+    }
+    
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     .options-grid {
         grid-template-columns: 1fr;
     }
@@ -779,6 +897,7 @@ body {
 
 /* Progress animation */
 @keyframes spin {
+<<<<<<< HEAD
     0% {
         transform: rotate(0deg);
     }
@@ -786,6 +905,10 @@ body {
     100% {
         transform: rotate(360deg);
     }
+=======
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }
 
 .fa-spinner {
@@ -815,7 +938,11 @@ body {
     font-size: 0.8rem;
     z-index: 1000;
     pointer-events: none;
+<<<<<<< HEAD
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+=======
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     max-width: 200px;
     line-height: 1.4;
 }
@@ -829,6 +956,7 @@ body {
     border-width: 5px;
     border-style: solid;
     border-color: var(--itb-primary) transparent transparent transparent;
+<<<<<<< HEAD
 }
 
 /* =========================== */
@@ -2027,4 +2155,6 @@ body {
 
 .dropdown-item:last-child:hover {
     background-color: #ffefef !important;
+=======
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 }

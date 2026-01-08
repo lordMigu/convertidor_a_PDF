@@ -34,6 +34,7 @@ class Settings(BaseSettings):
         "http://localhost:8000",
     ]
     
+<<<<<<< HEAD
     # Directorio de subidas
     upload_dir: str = "uploads"
     
@@ -42,6 +43,12 @@ class Settings(BaseSettings):
         "env_file_encoding": "utf-8",
         "case_sensitive": False
     }
+=======
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        case_sensitive = False
+>>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 
 
 @lru_cache()
