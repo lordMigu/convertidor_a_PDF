@@ -5,20 +5,13 @@ Incluye get_current_user para proteger rutas.
 
 from typing import AsyncGenerator
 from fastapi import Depends, HTTPException, status
-<<<<<<< HEAD
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-=======
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.db.session import get_db
 from app.models.user import User
-<<<<<<< HEAD
 from app.models.document import Permission
-=======
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 from app.core.security import decode_token
 from app.schemas.token import TokenData
 
@@ -27,11 +20,7 @@ security = HTTPBearer()
 
 
 async def get_current_user(
-<<<<<<< HEAD
     credentials: HTTPAuthorizationCredentials = Depends(security),
-=======
-    credentials: HTTPAuthCredentials = Depends(security),
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
@@ -105,7 +94,6 @@ async def get_current_admin(
         )
     
     return current_user
-<<<<<<< HEAD
 
 
 async def verify_document_access(
@@ -144,5 +132,3 @@ async def verify_document_access(
         raise HTTPException(status_code=403, detail="Error en configuración de permisos.")
 
     return permission.permission_level
-=======
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100

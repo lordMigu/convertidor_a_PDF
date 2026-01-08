@@ -1,5 +1,4 @@
 /**
-<<<<<<< HEAD
  * Utilidades de autenticación - MODO SIMULACIÓN
  */
 
@@ -11,144 +10,56 @@ const AUTH_CONFIG = {
 };
 
 // Guardar token JWT en localStorage
-=======
- * Utilidades de autenticación compartidas
- * Maneja tokens JWT, almacenamiento y validación
- */
-
-const AUTH_CONFIG = {
-    API_URL: 'http://localhost:8000',
-    TOKEN_KEY: 'eva-access-token',
-    USER_KEY: 'eva-user-data'
-};
-
-/**
- * Guardar token JWT en localStorage
- */
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 function saveToken(token) {
     localStorage.setItem(AUTH_CONFIG.TOKEN_KEY, token);
 }
 
-<<<<<<< HEAD
 // Obtener token JWT del localStorage
-=======
-/**
- * Obtener token JWT del localStorage
- */
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 function getToken() {
     return localStorage.getItem(AUTH_CONFIG.TOKEN_KEY);
 }
 
-<<<<<<< HEAD
 // Guardar datos del usuario
-=======
-/**
- * Guardar datos del usuario
- */
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 function saveUserData(userData) {
     localStorage.setItem(AUTH_CONFIG.USER_KEY, JSON.stringify(userData));
 }
 
-<<<<<<< HEAD
 // Obtener datos del usuario
-=======
-/**
- * Obtener datos del usuario
- */
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 function getUserData() {
     const data = localStorage.getItem(AUTH_CONFIG.USER_KEY);
     return data ? JSON.parse(data) : null;
 }
 
-<<<<<<< HEAD
 // Verificar si el usuario está autenticado (modo simulación)
 function isAuthenticated() {
     if (AUTH_CONFIG.USE_SIMULATION) {
         const token = getToken();
         return token !== null && token !== '';
     }
-=======
-/**
- * Verificar si el usuario está autenticado
- */
-function isAuthenticated() {
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     const token = getToken();
     return token !== null && token !== '';
 }
 
-<<<<<<< HEAD
 // Limpiar datos de autenticación (logout)
-=======
-/**
- * Limpiar datos de autenticación (logout)
- */
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 function clearAuth() {
     localStorage.removeItem(AUTH_CONFIG.TOKEN_KEY);
     localStorage.removeItem(AUTH_CONFIG.USER_KEY);
 }
 
-<<<<<<< HEAD
 // Redirigir a login si no está autenticado
-=======
-/**
- * Hacer una petición autenticada a la API
- */
-async function apiRequest(endpoint, options = {}) {
-    const url = `${AUTH_CONFIG.API_URL}${endpoint}`;
-    const token = getToken();
-    
-    const config = {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    };
-    
-    if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    
-    const response = await fetch(url, config);
-    
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Error en la solicitud');
-    }
-    
-    return response.json();
-}
-
-/**
- * Redirigir a login si no está autenticado
- */
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 function requireAuth() {
     if (!isAuthenticated()) {
         window.location.href = 'login.html';
     }
 }
 
-<<<<<<< HEAD
 // Redirigir a inicio si ya está autenticado
-=======
-/**
- * Redirigir a inicio si ya está autenticado
- */
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 function redirectIfAuthenticated() {
     if (isAuthenticated()) {
         window.location.href = 'index.html';
     }
 }
 
-<<<<<<< HEAD
 // Formatear información del usuario para mostrar
 function formatUserInfo(userData) {
     if (!userData) return { initials: 'US', role: 'Estudiante' };
@@ -308,23 +219,3 @@ if (typeof window !== 'undefined') {
     window.logout = logout;
     window.requireAuth = requireAuth;
 }
-=======
-/**
- * Formatear información del usuario para mostrar
- */
-function formatUserInfo(userData) {
-    return {
-        email: userData.email,
-        role: userData.role,
-        initials: userData.email.split('@')[0].substring(0, 2).toUpperCase()
-    };
-}
-
-/**
- * Cerrar sesión
- */
-function logout() {
-    clearAuth();
-    window.location.href = 'login.html';
-}
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100

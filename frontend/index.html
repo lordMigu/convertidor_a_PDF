@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversor Word a PDF | EVA-ITB</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-<<<<<<< HEAD
     <!-- Biblioteca para leer archivos DOCX -->
     <script src="https://unpkg.com/mammoth@1.4.8/mammoth.browser.min.js"></script>
     <!-- NOTA: NO cargar login-styles.css aquí -->
-    <link rel="shortcut icon" type="image/x-icon" href="https://eva.itb.edu.ec/pluginfile.php/1/theme_mb2nl/favicon/1761233098/Stickers%20-%20nuevos%20-%202023_Mesa%20de%20trabajo%201%20copia%205%20%281%29%20-%20copia.ico">
+    <link rel="shortcut icon" type="image/x-icon"
+        href="https://eva.itb.edu.ec/pluginfile.php/1/theme_mb2nl/favicon/1761233098/Stickers%20-%20nuevos%20-%202023_Mesa%20de%20trabajo%201%20copia%205%20%281%29%20-%20copia.ico">
 </head>
+
 <body class="index-body">
-=======
-    <link rel="shortcut icon" type="image/x-icon" href="https://eva.itb.edu.ec/pluginfile.php/1/theme_mb2nl/favicon/1761233098/Stickers%20-%20nuevos%20-%202023_Mesa%20de%20trabajo%201%20copia%205%20%281%29%20-%20copia.ico">
-</head>
-<body>
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
     <!-- Header idéntico al EVA-ITB -->
     <header class="header">
         <div class="container">
@@ -26,8 +24,9 @@
                 <div class="logo-section">
                     <div class="main-logo">
                         <a href="#" aria-label="EVA Instituto Tecnologico Bolivariano">
-                            <img class="logo-light" src="https://eva.itb.edu.ec/pluginfile.php/1/theme_mb2nl/logo/1761233098/Stickers%20-%20nuevos%20-%202023_Mesa%20de%20trabajo%201%20copia%205%20%281%29.png" 
-                                 alt="EVA Instituto Tecnologico Bolivariano">
+                            <img class="logo-light"
+                                src="https://eva.itb.edu.ec/pluginfile.php/1/theme_mb2nl/logo/1761233098/Stickers%20-%20nuevos%20-%202023_Mesa%20de%20trabajo%201%20copia%205%20%281%29.png"
+                                alt="EVA Instituto Tecnologico Bolivariano">
                         </a>
                     </div>
                     <div class="institution-info">
@@ -37,7 +36,6 @@
                 </div>
                 <div class="user-info">
                     <div class="user-avatar" id="userAvatar">RN</div>
-<<<<<<< HEAD
                     <div class="user-details">
                         <div class="user-name-role">
                             <div style="font-weight: 600;" id="userName">Roberto Negrete</div>
@@ -52,7 +50,8 @@
                                     <div class="dropdown-avatar" id="dropdownAvatar">RN</div>
                                     <div>
                                         <div style="font-weight: 600;" id="dropdownName">Roberto Negrete</div>
-                                        <div style="font-size: 0.8rem; color: var(--itb-gray);" id="dropdownRole">Estudiante - Desarrollo de Software</div>
+                                        <div style="font-size: 0.8rem; color: var(--itb-gray);" id="dropdownRole">
+                                            Estudiante - Desarrollo de Software</div>
                                     </div>
                                 </div>
                                 <div class="dropdown-divider"></div>
@@ -60,44 +59,22 @@
                                     <i class="fas fa-sign-out-alt"></i> Cerrar sesión
                                 </a>
                             </div>
-=======
-                    <div>
-                        <div style="font-weight: 600;" id="userName">Roberto Negrete</div>
-                        <div id="userRole">Estudiante - Desarrollo de Software</div>
-                        <div style="font-size: 0.8rem; margin-top: 5px;">
-                            <a href="#" id="logoutBtn" style="color: var(--itb-primary); text-decoration: none;">Cerrar sesión</a>
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </header>
-    
-<<<<<<< HEAD
-=======
-    <!-- Breadcrumb navigation -->
-    <nav class="breadcrumb">
-        <div class="container">
-            <div class="breadcrumb-content">
-                <a href="#">Inicio</a> / 
-                <a href="#">Intelio</a> / 
-                <a href="#">Herramientas</a> / 
-                <span>Conversor Word a PDF</span>
-            </div>
-        </div>
-    </nav>
-    
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
+
     <!-- Main content -->
     <main class="main-content">
         <div class="container">
             <div class="page-title">
-<<<<<<< HEAD
                 <h2><i class="fas fa-file-pdf"></i> Conversor de Archivos a PDF</h2>
-                <div class="page-subtitle">Convierte tus documentos Word, Excel, PowerPoint y TXT a PDF manteniendo el contenido</div>
+                <div class="page-subtitle">Convierte tus documentos Word, Excel, PowerPoint y TXT a PDF manteniendo el
+                    contenido</div>
             </div>
-            
+
             <!-- Navigation buttons -->
             <div class="nav-buttons">
                 <button class="nav-btn active" id="uploadBtn">
@@ -107,54 +84,34 @@
                     <i class="fas fa-history"></i> Historial
                 </button>
             </div>
-            
+
             <!-- Upload section -->
             <section class="upload-section" id="uploadSection">
                 <div class="upload-card" id="dropArea">
                     <i class="fas fa-cloud-upload-alt upload-icon"></i>
                     <h3 class="upload-title">Arrastra y suelta tu archivo aquí</h3>
-                    <p class="upload-info">Formatos soportados: .doc, .docx, .xls, .xlsx, .ppt, .pptx, .txt, .rtf. Tamaño máximo: 50MB</p>
-                    
+                    <p class="upload-info">Formatos soportados: .doc, .docx, .xls, .xlsx, .ppt, .pptx, .txt, .rtf.
+                        Tamaño máximo: 50MB</p>
+
                     <div class="file-input-wrapper">
                         <button class="btn" id="selectFileBtn">
                             <i class="fas fa-file-upload"></i> Seleccionar archivo
                         </button>
-                        <input type="file" class="file-input" id="fileInput" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf">
-=======
-                <h2><i class="fas fa-file-pdf"></i> Conversor Word a PDF</h2>
-                <div class="page-subtitle">Intelio / Herramientas / Conversor Word a PDF</div>
-            </div>
-            
-            <!-- Upload section -->
-            <section class="upload-section">
-                <div class="upload-card" id="dropArea">
-                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                    <h3 class="upload-title">Arrastra y suelta tu archivo Word aquí</h3>
-                    <p class="upload-info">Formatos soportados: .doc, .docx, .rtf, .txt. Tamaño máximo: 50MB</p>
-                    
-                    <div class="file-input-wrapper">
-                        <button class="btn" id="selectFileBtn">
-                            <i class="fas fa-file-word"></i> Seleccionar archivo
-                        </button>
-                        <input type="file" class="file-input" id="fileInput" accept=".doc,.docx,.rtf,.txt">
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
+                        <input type="file" class="file-input" id="fileInput"
+                            accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf">
                     </div>
-                    
+
                     <div class="file-info" id="fileInfo">
                         <div class="file-header">
                             <div class="file-name">
-<<<<<<< HEAD
                                 <i class="fas fa-file-word" id="fileIcon"></i>
-=======
-                                <i class="fas fa-file-word"></i>
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
                                 <span id="fileName">documento_ejemplo.docx</span>
                             </div>
                             <button class="btn-secondary" id="removeFileBtn">
                                 <i class="fas fa-times"></i> Cambiar
                             </button>
                         </div>
-                        
+
                         <div class="file-details">
                             <div class="detail-item">
                                 <i class="fas fa-weight-hanging"></i>
@@ -167,73 +124,35 @@
                                 <strong id="fileDate">15/03/2024</strong>
                             </div>
                             <div class="detail-item">
-<<<<<<< HEAD
                                 <i class="fas fa-file-alt"></i>
                                 <span>Tipo:</span>
                                 <strong id="fileType">Documento Word</strong>
-=======
-                                <i class="fas fa-shield-alt"></i>
-                                <span>Seguridad:</span>
-                                <strong>Archivo seguro</strong>
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
-            
-<<<<<<< HEAD
+
             <!-- History section -->
             <section class="history-section" id="historySection" style="display: none;">
                 <div class="history-header">
                     <h3><i class="fas fa-history"></i> Historial de Conversiones</h3>
                     <p>Archivos convertidos anteriormente</p>
                 </div>
-                
+
                 <div class="history-files" id="historyFiles">
                     <!-- Los archivos del historial se cargarán aquí dinámicamente -->
                     <div class="no-history">
                         <i class="fas fa-history fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
                         <p>No hay conversiones en el historial</p>
-                        <p style="font-size: 0.9rem; color: var(--itb-gray);">Los archivos que conviertas aparecerán aquí</p>
+                        <p style="font-size: 0.9rem; color: var(--itb-gray);">Los archivos que conviertas aparecerán
+                            aquí</p>
                     </div>
                 </div>
             </section>
-            
+
             <!-- Conversion options -->
             <section class="conversion-options" id="conversionOptions">
-=======
-            <!-- Navigation menu similar al EVA -->
-            <div class="nav-menu">
-                <div class="nav-item active">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="upload" checked disabled>
-                        <label for="upload"><i class="fas fa-upload"></i> Subir archivo Word</label>
-                    </div>
-                </div>
-                <div class="nav-item">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="history" checked>
-                        <label for="history"><i class="fas fa-history"></i> Historial</label>
-                    </div>
-                </div>
-                <div class="nav-item">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="settings" checked>
-                        <label for="settings"><i class="fas fa-cog"></i> Configuración</label>
-                    </div>
-                </div>
-                <div class="nav-item">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="help">
-                        <label for="help"><i class="fas fa-question-circle"></i> Ayuda</label>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Conversion options -->
-            <section class="conversion-options">
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
                 <h3 class="options-title"><i class="fas fa-sliders-h"></i> Opciones de Conversión</h3>
                 <div class="options-grid">
                     <div class="option-item">
@@ -247,7 +166,7 @@
                             <option value="low">Tamaño reducido</option>
                         </select>
                     </div>
-                    
+
                     <div class="option-item">
                         <div class="option-header">
                             <i class="fas fa-lock"></i>
@@ -259,7 +178,7 @@
                             <option value="password">Con contraseña</option>
                         </select>
                     </div>
-                    
+
                     <div class="option-item">
                         <div class="option-header">
                             <i class="fas fa-font"></i>
@@ -273,7 +192,7 @@
                     </div>
                 </div>
             </section>
-            
+
             <!-- Action buttons -->
             <div class="action-buttons">
                 <button class="btn" id="convertBtn">
@@ -282,25 +201,22 @@
                 <button class="btn-secondary" id="resetBtn">
                     <i class="fas fa-redo"></i> Limpiar
                 </button>
-<<<<<<< HEAD
                 <button class="btn-secondary" id="clearHistoryBtn" style="display: none;">
                     <i class="fas fa-trash-alt"></i> Limpiar Historial
-=======
-                <button class="btn-secondary">
-                    <i class="fas fa-download"></i> Ver Historial
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
                 </button>
             </div>
-            
+
             <!-- Status messages -->
             <div class="status-message" id="successMessage">
                 <i class="fas fa-check-circle" style="color: var(--itb-success); font-size: 20px;"></i>
                 <div>
                     <div style="font-weight: 600;">¡Conversión completada con éxito!</div>
-                    <div>El archivo PDF está listo para descargar. <a href="#" style="color: var(--itb-primary); font-weight: 600;" id="downloadLink">Descargar ahora</a></div>
+                    <div>El archivo PDF está listo para descargar. <a href="#"
+                            style="color: var(--itb-primary); font-weight: 600;" id="downloadLink">Descargar ahora</a>
+                    </div>
                 </div>
             </div>
-            
+
             <div class="status-message" id="errorMessage">
                 <i class="fas fa-exclamation-circle" style="color: var(--itb-accent); font-size: 20px;"></i>
                 <div>
@@ -310,70 +226,10 @@
             </div>
         </div>
     </main>
-<<<<<<< HEAD
 
     <script src="auth-utils.js"></script>
     <script src="script.js"></script>
     <script src="user-dropdown.js"></script>
-=======
-    
-    <!-- Footer idéntico al EVA-ITB -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <div class="footer-logo">
-                        <img src="https://eva.itb.edu.ec/pluginfile.php/1/local_mb2builder/images/Stickers%20-%20nuevos%20-%202023_Mesa%20de%20trabajo%201%20copia%205%20%281%29.png" 
-                             alt="ITB Logo">
-                    </div>
-                    <ul class="contact-info">
-                        <li><i class="fas fa-envelope"></i> eva@bolivariano.edu.ec</li>
-                        <li><i class="fas fa-phone"></i> PBX : (04) 5000175 - 2307028 - 5002164 - 3727040</li>
-                        <li><i class="fas fa-fax"></i> 1800 ITB-ITB: 482-482</li>
-                        <li><i class="fas fa-map-marker-alt"></i> Víctor Manuel Rendón 236 y Pedro Carbo</li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h4>Información ITB</h4>
-                    <ul>
-                        <li><a href="https://itb.edu.ec/Beca" target="_blank">Becas</a></li>
-                        <li><a href="https://buckcenter.edu.ec" target="_blank">Buckingham English Center S.A.</a></li>
-                        <li><a href="https://conducecuador.itb.edu.ec" target="_blank">Conduce Ecuador</a></li>
-                        <li><a href="https://itb.edu.ec/Oferta_academica" target="_blank">Oferta Académica</a></li>
-                        <li><a href="https://itb.edu.ec/Vinculacion" target="_blank">Vinculación</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h4>Comunidad Moodle</h4>
-                    <ul>
-                        <li><a href="https://docs.moodle.org" target="_blank">Acerca de Moodle</a></li>
-                        <li><a href="https://moodle.org/security/" target="_blank">Alertas de seguridad</a></li>
-                        <li><a href="https://docs.moodle.org" target="_blank">Documentación</a></li>
-                        <li><a href="https://moodle.org/plugins/" target="_blank">Plugins</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h4>Enseñanza en Línea 100%</h4>
-                    <p style="font-size: 0.9rem; line-height: 1.5; color: var(--itb-gray);">
-                        Estudia desde la comodidad de tu hogar, con clases 100% online en el horario que más te convenga. Estudia a tu ritmo en el momento que lo desees, está disponible 24/7.
-                    </p>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <div class="footer-bottom-content">
-                    <p>© 2019 - 2025 Instituto Superior Tecnológico Bolivariano de Tecnología. Todos los derechos reservados.</p>
-                    <p style="margin-top: 5px; font-size: 0.8rem;">Versión 2.1.4 | Última actualización: 15/03/2024</p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="auth-utils.js"></script>
-    <script src="script.js"></script>
->>>>>>> c6414dd4839300d53c1dad022bf632049abe4100
 </body>
+
 </html>
