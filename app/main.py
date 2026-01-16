@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from app.core.config import get_settings
 from app.db.session import engine
 from app.db.base import Base
-from app.api.v1.endpoints import auth_router, files_router
+from app.api.v1.endpoints import auth_router, files_router, signature_router
 from app.core.converters import ConverterFactory
 
 # Configurar logging
@@ -65,9 +65,10 @@ app.add_middleware(
 # Rutas estáticas para archivos temporales
 app.mount("/temp", StaticFiles(directory=TEMP_DIR), name="temp")
 
-# Incluir routers existentes (Auth, Files)
+# Incluir routers existentes (Auth, Files, Signatures)
 app.include_router(auth_router)
 app.include_router(files_router)
+app.include_router(signature_router)
 
 @app.post("/convert")
 async def convert_document(background_tasks: BackgroundTasks, file: UploadFile = File(...)):

@@ -61,3 +61,10 @@ class DocumentResponse(DocumentBase):
 
 class DocumentWithVersions(DocumentResponse):
     versions: List[VersionResponse] = []
+
+
+class SignatureValidationResponse(BaseModel):
+    is_valid: bool
+    signer_name: Optional[str] = None
+    timestamp: Optional[datetime] = None
+    trusted: bool
