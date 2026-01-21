@@ -1,0 +1,1343 @@
+/**
+ * Script principal para el conversor - VERSIÓN MEJORADA
+ * Ahora soporta Word, PowerPoint y Excel - SIN VISTA PREVIA
+ */
+
+const API_URL = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || "http://localhost:8000";
+
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('✅ Conversor de Archivos a PDF - Multi-formato');
+
+    // Elementos del DOM
+    const fileInput = document.getElementById('fileInput');
+    const selectFileBtn = document.getElementById('selectFileBtn');
+    const dropArea = document.getElementById('dropArea');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileDate = document.getElementById('fileDate');
+    const fileType = document.getElementById('fileType');
+    const fileIcon = document.getElementById('fileIcon');
+    const convertBtn = document.getElementById('convertBtn');
+    const removeFileBtn = document.getElementById('removeFileBtn');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    const statusOverlay = document.getElementById('statusOverlay');
+    const downloadLink = document.getElementById('downloadLink');
+    const downloadLinkContainer = document.getElementById('downloadLinkContainer');
+    const closeSuccess = document.getElementById('closeSuccess');
+    const closeError = document.getElementById('closeError');
+    const closeErrorBtn = document.getElementById('closeErrorBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const historyBtn = document.getElementById('historyBtn');
+    const uploadSection = document.getElementById('uploadSection');
+    const historySection = document.getElementById('historySection');
+    const historyFiles = document.getElementById('historyFiles');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const clearSharedBtn = document.getElementById('clearSharedBtn');
+
+    // Elementos para documentos compartidos (Nuevo)
+    const sharedBtn = document.getElementById('sharedBtn');
+    const sharedSection = document.getElementById('sharedSection');
+    const sharedFiles = document.getElementById('sharedFiles');
+    const conversionOptions = document.getElementById('conversionOptions');
+    const formatInfo = document.getElementById('formatInfo');
+
+    // Variables de estado
+    let currentFile = null;
+    let currentParentId = null; // Para control de versiones
+    let conversionHistory = [];
+    let uploadedFiles = []; // Array para almacenar archivos subidos
+
+    // Cargar historiales desde localStorage
+    loadFromLocalStorage();
+
+    // Inicializar checkboxes de navegación si existen
+    initializeNavigationCheckboxes();
+
+    // Función para inicializar los checkboxes de navegación
+    function initializeNavigationCheckboxes() {
+        document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const navItem = this.closest('.nav-item');
+                if (this.checked) {
+                    navItem.classList.add('active');
+                } else {
+                    navItem.classList.remove('active');
+                }
+            });
+        });
+    }
+
+    // Navegación entre pestañas
+    if (uploadBtn && historyBtn) {
+        uploadBtn.addEventListener('click', function () {
+            showUploadSection();
+        });
+
+        historyBtn.addEventListener('click', function () {
+            showHistorySection();
+        });
+
+        if (sharedBtn) {
+            sharedBtn.addEventListener('click', function () {
+                showSharedSection();
+            });
+        }
+    }
+
+    // Mostrar sección de subir archivo
+    function showUploadSection() {
+        uploadSection.style.display = 'block';
+        historySection.style.display = 'none';
+        if (conversionOptions) conversionOptions.style.display = 'block';
+        uploadBtn.classList.add('active');
+        historyBtn.classList.remove('active');
+        if (convertBtn) convertBtn.style.display = 'block';
+        if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
+        if (clearSharedBtn) clearSharedBtn.style.display = 'none';
+
+        // Ocultar sección compartida
+        if (sharedSection) sharedSection.style.display = 'none';
+        if (sharedBtn) sharedBtn.classList.remove('active');
+
+        hideMessages();
+    }
+
+    // Mostrar sección de historial
+    function showHistorySection() {
+        uploadSection.style.display = 'none';
+        historySection.style.display = 'block';
+        if (conversionOptions) conversionOptions.style.display = 'none';
+        uploadBtn.classList.remove('active');
+        historyBtn.classList.add('active');
+        if (convertBtn) convertBtn.style.display = 'none';
+        if (clearHistoryBtn) clearHistoryBtn.style.display = 'block';
+        if (clearSharedBtn) clearSharedBtn.style.display = 'none';
+
+        // Ocultar sección compartida
+        if (sharedSection) sharedSection.style.display = 'none';
+        if (sharedBtn) sharedBtn.classList.remove('active');
+
+        loadHistory();
+    }
+
+    // Mostrar sección de documentos compartidos
+    function showSharedSection() {
+        uploadSection.style.display = 'none';
+        historySection.style.display = 'none';
+        if (sharedSection) sharedSection.style.display = 'block';
+
+        if (conversionOptions) conversionOptions.style.display = 'none';
+
+        uploadBtn.classList.remove('active');
+        historyBtn.classList.remove('active');
+        if (sharedBtn) sharedBtn.classList.add('active');
+
+        if (convertBtn) convertBtn.style.display = 'none';
+        if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
+        if (clearSharedBtn) clearSharedBtn.style.display = 'block';
+
+        loadDocuments(); // Cargar todos los documentos
+    }
+
+    // Cargar datos desde localStorage
+    function loadFromLocalStorage() {
+        try {
+            const savedHistory = localStorage.getItem('conversionHistory');
+            const savedUploads = localStorage.getItem('uploadedFiles');
+
+            if (savedHistory) {
+                conversionHistory = JSON.parse(savedHistory);
+            }
+
+            if (savedUploads) {
+                uploadedFiles = JSON.parse(savedUploads);
+                console.log(`📂 Archivos cargados desde localStorage: ${uploadedFiles.length}`);
+            }
+        } catch (error) {
+            console.error('Error al cargar datos de localStorage:', error);
+            conversionHistory = [];
+            uploadedFiles = [];
+        }
+    }
+
+    // Guardar datos en localStorage
+    function saveToLocalStorage() {
+        try {
+            localStorage.setItem('conversionHistory', JSON.stringify(conversionHistory));
+            localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
+            console.log(`💾 Datos guardados: ${conversionHistory.length} conversiones, ${uploadedFiles.length} archivos`);
+        } catch (error) {
+            console.error('Error al guardar en localStorage:', error);
+        }
+    }
+
+    // Cargar historial y documentos compartidos
+    async function loadHistory() {
+        await loadDocuments();
+    }
+
+    async function loadDocuments() {
+        if (!historyFiles) return;
+
+        let historyHTML = '';
+        let sharedHTML = ''; // HTML para docs compartidos
+        let backendDocs = [];
+
+        if (isAuthenticated()) {
+            try {
+                const response = await fetch(`${API_URL}/api/v1/files/my-documents`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                if (response.status === 401) {
+                    console.error('🔒 Sesión expirada o no autorizada');
+                    logout();
+                    return;
+                }
+                if (response.ok) {
+                    backendDocs = await response.json();
+                }
+            } catch (error) {
+                console.error('Error cargando documentos del backend:', error);
+            }
+        }
+
+        // Filtrar conversiones locales si ya están en el backend
+        let localHistoryToShow = conversionHistory;
+        if (isAuthenticated() && backendDocs.length > 0) {
+            localHistoryToShow = conversionHistory.filter(item =>
+                !backendDocs.some(doc => doc.name === item.originalName)
+            );
+        }
+
+        if (conversionHistory.length === 0 && uploadedFiles.length === 0 && backendDocs.length === 0) {
+            historyFiles.innerHTML = `
+                <div class="no-history">
+                    <i class="fas fa-history fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
+                    <p>No hay conversiones en el historial</p>
+                    <p style="font-size: 0.9rem; color: var(--itb-gray);">Los archivos que conviertas aparecerán aquí</p>
+                </div>
+            `;
+            if (sharedFiles) {
+                sharedFiles.innerHTML = `
+                        <div class="no-history">
+                            <i class="fas fa-folder-open fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
+                            <p>No tienes documentos compartidos</p>
+                            <p style="font-size: 0.9rem; color: var(--itb-gray);">Los documentos que compartan contigo aparecerán aquí</p>
+                        </div>
+                    `;
+            }
+            return;
+        }
+
+        // Filtramos documentos: Propios vs Compartidos
+        const ownedDocs = backendDocs.filter(d => d.is_owner);
+        const sharedDocs = backendDocs.filter(d => !d.is_owner);
+
+        // Renderizar Propios en Historial
+        if (ownedDocs.length > 0) {
+            renderDocumentList(ownedDocs, true, (html) => historyHTML += html);
+        }
+
+        // Renderizar Compartidos en Sección Compartida
+        if (sharedDocs.length > 0 && sharedFiles) {
+            renderDocumentList(sharedDocs, false, (html) => sharedHTML += html);
+        } else if (sharedFiles) {
+            sharedFiles.innerHTML = `
+                        <div class="no-history">
+                            <i class="fas fa-folder-open fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
+                            <p>No tienes documentos compartidos</p>
+                            <p style="font-size: 0.9rem; color: var(--itb-gray);">Los documentos que compartan contigo aparecerán aquí</p>
+                        </div>
+                    `;
+        }
+
+
+        // ... (Continuación de historial local) ...
+
+        if (localHistoryToShow.length > 0) {
+            historyHTML += `<h3 style="margin: 30px 0 10px; color: var(--itb-primary);">Conversiones recientes (Local)</h3>`;
+
+            localHistoryToShow.forEach((item, index) => {
+                // El index original en conversionHistory es importante para delete/download
+                const actualIndex = conversionHistory.findIndex(h => h.id === item.id);
+
+                const iconClass = getFileIconClass(item.originalType);
+                const date = new Date(item.date).toLocaleDateString('es-ES', {
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+
+                historyHTML += `
+                    <div class="history-item">
+                        <div class="history-file-info">
+                            <i class="fas ${iconClass} history-file-icon" style="color: ${getFileIconColor(item.originalType)}"></i>
+                            <div class="history-file-details">
+                                <h4>${item.originalName} → PDF</h4>
+                                <div class="history-file-meta">
+                                    <span><i class="fas fa-calendar-alt"></i> ${date}</span>
+                                    <span><i class="fas fa-weight-hanging"></i> ${item.originalSize}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="history-file-actions">
+                            <button class="btn download-pdf-btn" data-index="${actualIndex}">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="btn-secondary delete-history-btn" data-index="${actualIndex}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        historyFiles.innerHTML = historyHTML;
+        if (sharedFiles && sharedHTML) {
+            sharedFiles.innerHTML = sharedHTML;
+        }
+
+        attachSharedEvents();
+    }
+
+    // Función auxiliar para renderizar listas de documentos
+    function renderDocumentList(docs, isMyDocs, appendHtmlCallback) {
+        if (isMyDocs) {
+            appendHtmlCallback(`<h3 style="margin: 20px 0 10px; color: var(--itb-primary);">Mis Documentos</h3>`);
+        }
+
+        docs.forEach(doc => {
+            const v = doc.latest_version;
+            const fileExt = doc.name.split('.').pop();
+            const iconClass = getFileIconClass(fileExt);
+            const date = new Date(doc.created_at).toLocaleDateString('es-ES', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+
+            const permission = doc.permission || (doc.is_owner ? 'owner' : 'viewer');
+            const isOwner = permission === 'owner';
+            const canEdit = permission === 'owner' || permission === 'editor'; // Editor también puede compartir? Asumamos que no, solo Owner.
+
+            // Solo OWNER puede compartir según requerimiento
+            const canShare = isOwner;
+
+            // Badge de compartido - Ahora también sale si el dueño lo compartió con otros
+            const isShared = !isOwner || doc.shared_with_others;
+            const sharedBadge = isShared ? '<span class="badge" style="background: #e67e22; font-size: 0.7rem; padding: 2px 5px; border-radius: 4px; color: white; margin-left: 5px;">Compartido</span>' : '';
+
+            // Estados de botones
+            const deleteDisabled = !isOwner ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : '';
+            // Ocultar Nueva Versión si es viewer (solo editor/owner pueden)
+            const updateStyle = !canEdit ? 'display: none;' : '';
+
+            const html = `
+                <div class="history-item">
+                    <div class="history-file-info">
+                        <i class="fas ${iconClass} history-file-icon" style="color: ${getFileIconColor(fileExt)}"></i>
+                        <div class="history-file-details">
+                            <h4>${doc.name} 
+                                <span class="badge" style="background: var(--itb-secondary); font-size: 0.7rem; padding: 2px 5px; border-radius: 4px; color: white;">${v ? v.version_number : 'v1.0'}</span>
+                                ${sharedBadge}
+                            </h4>
+                            <div class="history-file-meta">
+                                <span><i class="fas fa-calendar-alt"></i> ${date}</span>
+                                <span><i class="fas fa-weight-hanging"></i> ${v ? formatFileSize(v.file_size) : '-'}</span>
+                                <span><i class="fas fa-user-tag"></i> ${permission === 'owner' ? 'Propietario' : (permission === 'editor' ? 'Editor' : 'Lector')}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="history-file-actions">
+                        <button class="btn download-cloud-btn" data-id="${v ? v.id : ''}" title="Descargar">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        ${canShare ? `<button class="btn-secondary share-doc-btn" data-id="${doc.id}" data-name="${doc.name}" title="Compartir">
+                            <i class="fas fa-user-plus"></i>
+                        </button>` : ''}
+                        <button class="btn-secondary upload-version-btn" data-id="${doc.id}" title="Nueva Versión" style="${updateStyle}">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="btn-secondary delete-cloud-btn" data-id="${doc.id}" title="Eliminar" ${deleteDisabled}>
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            appendHtmlCallback(html);
+        });
+    }
+
+    function attachSharedEvents() {
+        // Eventos para Cloud Download
+        document.querySelectorAll('.download-cloud-btn').forEach(btn => {
+            btn.onclick = async function () {
+                const versionId = this.getAttribute('data-id');
+                if (versionId) await downloadCloudFile(versionId);
+            };
+        });
+
+        // Evento para Nueva Versión
+        document.querySelectorAll('.upload-version-btn').forEach(btn => {
+            btn.onclick = function () {
+                const docId = this.getAttribute('data-id');
+                currentParentId = docId;
+                showUploadSection();
+                showSuccess(`Preparado para subir nueva versión del documento #${docId}`);
+            };
+        });
+
+        document.querySelectorAll('.delete-cloud-btn').forEach(btn => {
+            btn.onclick = async function () {
+                if (this.disabled) return;
+                const docId = this.getAttribute('data-id');
+                if (confirm('¿Estás seguro de que deseas eliminar este documento y todas sus versiones?')) {
+                    await deleteCloudDocument(docId);
+                }
+            };
+        });
+
+        // Evento para Compartir
+        document.querySelectorAll('.share-doc-btn').forEach(btn => {
+            btn.onclick = function () {
+                const docId = this.getAttribute('data-id');
+                const docName = this.getAttribute('data-name');
+                openShareModal(docId, docName);
+            };
+        });
+    }
+
+
+
+    // Agregar eventos a los botones del historial
+    document.querySelectorAll('.download-pdf-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const index = parseInt(this.getAttribute('data-index'));
+            downloadFromHistory(index);
+        });
+    });
+
+    document.querySelectorAll('.use-file-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const index = parseInt(this.getAttribute('data-index'));
+            useFileFromHistory(index);
+        });
+    });
+
+    document.querySelectorAll('.delete-history-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const type = this.getAttribute('data-type') || 'conversion';
+            const index = parseInt(this.getAttribute('data-index'));
+            deleteFromHistory(type, index);
+        });
+    });
+
+
+    // Usar archivo del historial
+    function useFileFromHistory(index) {
+        if (index >= 0 && index < uploadedFiles.length) {
+            const fileData = uploadedFiles[index];
+
+            // Crear un objeto File simulado a partir de los datos
+            const file = new File([], fileData.name, {
+                type: fileData.mimeType,
+                lastModified: new Date(fileData.date).getTime()
+            });
+
+            // Simular el procesamiento del archivo
+            currentFile = {
+                name: fileData.name,
+                size: fileData.size,
+                type: fileData.type,
+                mimeType: fileData.mimeType,
+                lastModified: new Date(fileData.date).getTime()
+            };
+
+            updateFileInfo(currentFile);
+            showUploadSection();
+            showSuccess('Archivo cargado desde el historial');
+        }
+    }
+
+    // Función para obtener clase de íconos según tipo de archivo
+    function getFileIconClass(fileType) {
+        const type = fileType.toLowerCase();
+
+        if (type.includes('word') || type.includes('doc')) {
+            return 'fa-file-word';
+        } else if (type.includes('excel') || type.includes('xls')) {
+            return 'fa-file-excel';
+        } else if (type.includes('powerpoint') || type.includes('ppt')) {
+            return 'fa-file-powerpoint';
+        } else if (type.includes('pdf')) {
+            return 'fa-file-pdf';
+        } else if (type.includes('text') || type.includes('txt')) {
+            return 'fa-file-alt';
+        } else if (type.includes('rtf')) {
+            return 'fa-file-alt';
+        } else {
+            return 'fa-file';
+        }
+    }
+
+    // Función para obtener color del ícono según tipo de archivo
+    function getFileIconColor(fileType) {
+        const type = fileType.toLowerCase();
+
+        if (type.includes('word') || type.includes('doc')) {
+            return '#2B579A'; // Azul Office
+        } else if (type.includes('excel') || type.includes('xls')) {
+            return '#217346'; // Verde Excel
+        } else if (type.includes('powerpoint') || type.includes('ppt')) {
+            return '#D24726'; // Naranja PowerPoint
+        } else if (type.includes('pdf')) {
+            return '#F40F02'; // Rojo PDF
+        } else {
+            return '#666666'; // Gris para otros
+        }
+    }
+
+    // Función para obtener nombre del tipo de archivo
+    function getFileTypeName(fileType) {
+        const type = fileType.toLowerCase();
+
+        if (type.includes('word') || type.includes('doc')) {
+            return 'Documento Word';
+        } else if (type.includes('excel') || type.includes('xls')) {
+            return 'Hoja de cálculo Excel';
+        } else if (type.includes('powerpoint') || type.includes('ppt')) {
+            return 'Presentación PowerPoint';
+        } else if (type.includes('pdf')) {
+            return 'Documento PDF';
+        } else if (type.includes('txt')) {
+            return 'Documento de Texto';
+        } else if (type.includes('rtf')) {
+            return 'Documento RTF';
+        } else {
+            return 'Documento';
+        }
+    }
+
+    // Actualizar información de formatos soportados
+    function updateFormatInfo() {
+        if (formatInfo) {
+            formatInfo.innerHTML = `
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+                    <span style="display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-file-word" style="color: #2B579A;"></i> Word (.docx, .doc)
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-file-excel" style="color: #217346;"></i> Excel (.xlsx, .xls)
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-file-powerpoint" style="color: #D24726;"></i> PowerPoint (.pptx, .ppt)
+                    </span>
+                </div>
+            `;
+        }
+    }
+
+    // Limpiar historial
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', function () {
+            if (confirm('¿Estás seguro de que deseas eliminar todo el historial?')) {
+
+                // Liberar todas las URLs de PDF locales
+                conversionHistory.forEach(item => {
+                    if (item.pdfUrl) {
+                        URL.revokeObjectURL(item.pdfUrl);
+                    }
+                });
+
+                conversionHistory = [];
+                uploadedFiles = [];
+                saveToLocalStorage();
+                loadHistory();
+                showSuccess('Historial eliminado correctamente');
+            }
+        });
+    }
+
+    // Limpiar documentos compartidos
+    if (clearSharedBtn) {
+        clearSharedBtn.addEventListener('click', function () {
+            if (confirm('¿Estás seguro de que deseas eliminar todos los documentos compartidos?')) {
+                // Solo mostramos el mensaje ya que el backend no está disponible
+                showSuccess('Documentos compartidos eliminados correctamente');
+            }
+        });
+    }
+
+    // Función para abrir selector de archivos
+    selectFileBtn.addEventListener('click', function () {
+        fileInput.click();
+    });
+
+    // Manejar selección de archivo
+    fileInput.addEventListener('change', function (e) {
+        if (this.files.length > 0) {
+            const file = this.files[0];
+            console.log('📄 Archivo seleccionado:', file.name, 'Tipo:', file.type);
+            processFile(file);
+        }
+    });
+
+    // Funcionalidad de arrastrar y soltar
+    dropArea.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        this.style.borderColor = "var(--itb-primary)";
+        this.style.backgroundColor = "rgba(52, 152, 219, 0.1)";
+    });
+
+    dropArea.addEventListener('dragleave', function () {
+        this.style.borderColor = "";
+        this.style.backgroundColor = "";
+    });
+
+    dropArea.addEventListener('drop', function (e) {
+        e.preventDefault();
+        this.style.borderColor = "";
+        this.style.backgroundColor = "";
+
+        if (e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            fileInput.files = e.dataTransfer.files;
+            console.log('📄 Archivo arrastrado:', file.name);
+            processFile(file);
+        }
+    });
+
+    // Procesar archivo seleccionado
+    function processFile(file) {
+        // Validar extensión - ahora incluye PowerPoint y Excel
+        const validExtensions = ['.docx', '.doc', '.xlsx', '.xls', '.pptx', '.ppt', '.txt', '.rtf'];
+        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+
+        if (!validExtensions.includes(fileExt)) {
+            showError(`Formato no soportado. Formatos permitidos: Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx, .ppt), Texto (.txt, .rtf)`);
+            return;
+        }
+
+        // Validar tamaño (50MB)
+        const maxSize = 50 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showError(`Archivo muy grande. Máximo: 50MB`);
+            return;
+        }
+
+        currentFile = file;
+        updateFileInfo(file);
+        hideMessages();
+
+        // Guardar archivo en el historial de subidas
+        saveFileToHistory(file);
+
+        // Actualizar información de formatos
+        updateFormatInfo();
+    }
+
+    // Guardar archivo en el historial de subidas (Real API)
+    async function saveFileToHistory(file) {
+        if (!isAuthenticated()) {
+            console.log('👤 Usuario no autenticado, guardando localmente');
+            const fileData = {
+                id: Date.now(),
+                name: file.name,
+                size: file.size,
+                type: file.type || getFileTypeFromExtension(file.name),
+                mimeType: file.type,
+                date: new Date().toISOString()
+            };
+            uploadedFiles.unshift(fileData);
+            saveToLocalStorage();
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            let uploadUrl = `${API_URL}/api/v1/files/upload`;
+            if (typeof currentParentId !== 'undefined' && currentParentId) {
+                uploadUrl += `?parent_id=${currentParentId}`;
+            }
+
+            const response = await fetch(uploadUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                body: formData
+            });
+
+            if (response.status === 401) {
+                console.error('🔒 Sesión expirada detectada al subir archivo');
+                logout();
+                return;
+            }
+
+            if (response.ok) {
+                console.log('✅ Archivo subido y registrado en DB');
+                loadHistory(); // Recargar para mostrar el nuevo archivo
+            }
+        } catch (error) {
+            console.error('Error al subir archivo:', error);
+        }
+    }
+
+    // Obtener tipo de archivo desde extensión
+    function getFileTypeFromExtension(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+
+        if (['docx', 'doc'].includes(ext)) return 'word';
+        if (['xlsx', 'xls'].includes(ext)) return 'excel';
+        if (['pptx', 'ppt'].includes(ext)) return 'powerpoint';
+        if (['pdf'].includes(ext)) return 'pdf';
+        if (['txt'].includes(ext)) return 'text';
+        if (['rtf'].includes(ext)) return 'rtf';
+
+        return 'unknown';
+    }
+
+    // Actualizar información del archivo
+    function updateFileInfo(file) {
+        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+        const typeName = getFileTypeName(fileExt);
+        const iconClass = getFileIconClass(fileExt);
+
+        if (fileName) fileName.textContent = file.name;
+        if (fileSize) fileSize.textContent = formatFileSize(file.size);
+        if (fileType) fileType.textContent = typeName;
+        if (fileIcon) {
+            fileIcon.className = `fas ${iconClass}`;
+            fileIcon.style.color = getFileIconColor(fileExt);
+        }
+
+        const date = new Date(file.lastModified);
+        if (fileDate) {
+            fileDate.textContent = date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        if (fileInfo) {
+            fileInfo.style.display = 'block';
+        }
+    }
+
+    // Formatear tamaño del archivo
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Eliminar archivo
+    removeFileBtn.addEventListener('click', function () {
+        currentFile = null;
+        fileInput.value = '';
+        if (fileInfo) fileInfo.style.display = 'none';
+        hideMessages();
+    });
+
+
+
+    // Convertir archivo a PDF
+    convertBtn.addEventListener('click', async function () {
+        if (!currentFile) {
+            showError('Por favor, seleccione un archivo');
+            return;
+        }
+
+        await convertWithAPI();
+
+        currentParentId = null; // Reset tras guardado
+    });
+
+    // Convertir usando API backend - VERSIÓN MEJORADA
+    async function convertWithAPI() {
+        const formData = new FormData();
+        formData.append("file", currentFile);
+
+        // Mostrar loading
+        convertBtn.disabled = true;
+        const originalText = convertBtn.innerHTML;
+        convertBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando a servidor...';
+
+        hideMessages();
+
+        try {
+            console.log(`[API] Enviando archivo a ${API_URL}/convert`);
+            console.log(`[API] Archivo: ${currentFile.name} (${formatFileSize(currentFile.size)})`);
+
+            // Configurar timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos
+
+            const response = await fetch(`${API_URL}/convert`, {
+                method: "POST",
+                body: formData,
+                signal: controller.signal
+            }).catch(error => {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error('Tiempo de espera agotado. El servidor no respondió.');
+                }
+                throw error;
+            });
+
+            clearTimeout(timeoutId);
+
+            console.log(`[API] Respuesta: ${response.status} ${response.statusText}`);
+
+            if (!response.ok) {
+                let errorMessage = `Error ${response.status}: ${response.statusText}`;
+                try {
+                    const errorData = await response.json();
+                    if (errorData.detail) {
+                        errorMessage = errorData.detail;
+                    } else if (errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } catch (e) {
+                    // Si no es JSON, intentar leer como texto
+                    const errorText = await response.text();
+                    if (errorText) {
+                        errorMessage = errorText.substring(0, 200);
+                    }
+                }
+                throw new Error(errorMessage);
+            }
+
+            // Verificar que sea un PDF
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/pdf')) {
+                console.warn('⚠️ La respuesta no es un PDF, content-type:', contentType);
+                throw new Error('El servidor no devolvió un PDF válido');
+            }
+
+            // Obtener el blob del PDF
+            const pdfBlob = await response.blob();
+            console.log(`[API] PDF recibido: ${formatFileSize(pdfBlob.size)}`);
+
+            if (pdfBlob.size === 0) {
+                throw new Error('El PDF recibido está vacío');
+            }
+
+            // Procesar el PDF recibido
+            await processConvertedPDF(pdfBlob);
+
+        } catch (error) {
+            console.error('[ERROR] Error en conversión API:', error);
+
+            if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+                showError(`No se puede conectar al servidor en ${API_URL}. Verifica que el servidor esté corriendo.`);
+            } else if (error.message.includes('Tiempo de espera')) {
+                showError('El servidor tardó demasiado en responder. Intenta nuevamente.');
+            } else {
+                showError(error.message || 'Error al convertir el archivo. Intente nuevamente.');
+            }
+
+            // NO intentar conversión local como fallback - mejor mostrar error claro
+        } finally {
+            // Restaurar botón
+            convertBtn.disabled = false;
+            convertBtn.innerHTML = originalText;
+        }
+    }
+
+    // Procesar PDF convertido - SIN VISTA PREVIA
+    async function processConvertedPDF(pdfBlob) {
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const pdfFilename = currentFile.name.replace(/\.[^/.]+$/, "") + ".pdf";
+
+        console.log(`[PDF] Generado: ${formatFileSize(pdfBlob.size)}`);
+
+        // Guardar en historial de conversiones solo si NO está autenticado
+        // Evitamos duplicados porque los autenticados ya lo guardan en la nube
+        if (!isAuthenticated()) {
+            const conversionRecord = {
+                id: Date.now(),
+                originalName: currentFile.name,
+                originalType: currentFile.name.split('.').pop().toLowerCase(),
+                originalSize: formatFileSize(currentFile.size),
+                pdfName: pdfFilename,
+                pdfSize: formatFileSize(pdfBlob.size),
+                pdfUrl: pdfUrl,
+                date: new Date().toISOString(),
+                convertedWith: 'api'
+            };
+
+            // Agregar al principio del array
+            conversionHistory.unshift(conversionRecord);
+
+            // Mantener solo los últimos 30 archivos
+            if (conversionHistory.length > 30) {
+                // Liberar URL del archivo más antiguo
+                if (conversionHistory[30].pdfUrl) {
+                    URL.revokeObjectURL(conversionHistory[30].pdfUrl);
+                }
+                conversionHistory = conversionHistory.slice(0, 30);
+            }
+
+            saveToLocalStorage();
+        }
+
+        // Configurar enlace de descarga
+        if (downloadLink) {
+            downloadLink.href = pdfUrl;
+            downloadLink.download = pdfFilename;
+
+            // Crear un enlace de descarga automática
+            setTimeout(() => {
+                downloadPDF(pdfUrl, pdfFilename);
+            }, 500); // Pequeña pausa antes de descargar
+        }
+
+        // Mostrar éxito con información del PDF
+        showSuccess(`✅ ${currentFile.name} convertido exitosamente a PDF<br>
+                    <small>Tamaño: ${formatFileSize(pdfBlob.size)} • Listo para descargar</small>`);
+
+        // Limpiar URL después de 1 hora para liberar memoria
+        setTimeout(() => {
+            URL.revokeObjectURL(pdfUrl);
+            console.log('🧹 URL del PDF liberada de memoria');
+        }, 60 * 60 * 1000);
+    }
+
+    // ========== FUNCIONES MEJORADAS PARA EXTRACCIÓN DE CONTENIDO ==========
+
+    // Función para extraer texto de archivos (como fallback)
+    async function extractFileContent(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                try {
+                    const fileExt = file.name.split('.').pop().toLowerCase();
+
+                    if (fileExt === 'txt' || fileExt === 'rtf') {
+                        // Archivos de texto - leer directamente
+                        resolve(event.target.result);
+                    } else if (fileExt === 'docx') {
+                        // Para DOCX, usar una aproximación básica
+                        resolve(extractBasicTextFromDOCX(event.target.result, file.name));
+                    } else {
+                        // Para otros formatos
+                        resolve(`Contenido de ${file.name}\n\nFormato: ${fileExt}\nTamaño: ${formatFileSize(file.size)}\n\nPara una conversión completa, use el servidor en ${API_URL}`);
+                    }
+                } catch (error) {
+                    resolve(`Error al leer ${file.name}: ${error.message}`);
+                }
+            };
+
+            reader.onerror = function () {
+                resolve(`No se pudo leer el archivo: ${file.name}`);
+            };
+
+            if (file.name.endsWith('.txt') || file.name.endsWith('.rtf')) {
+                reader.readAsText(file, 'UTF-8');
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        });
+    }
+
+    // Función básica para extraer texto de DOCX
+    function extractBasicTextFromDOCX(arrayBuffer, filename) {
+        try {
+            // Los archivos DOCX son ZIP que contienen XML
+            // Esta es una aproximación muy básica
+            const decoder = new TextDecoder('utf-8');
+            const view = new DataView(arrayBuffer);
+
+            // Intentar encontrar texto en el buffer
+            let text = '';
+            const chunkSize = 1024;
+
+            for (let i = 0; i < Math.min(arrayBuffer.byteLength, 10000); i += chunkSize) {
+                const chunk = new Uint8Array(arrayBuffer, i, Math.min(chunkSize, arrayBuffer.byteLength - i));
+                const chunkText = decoder.decode(chunk);
+
+                // Filtrar caracteres no imprimibles y mantener solo texto legible
+                const cleanText = chunkText.replace(/[^\x20-\x7E\n\r\táéíóúÁÉÍÓÚñÑ¿¡]/g, ' ');
+                if (cleanText.trim().length > 10) {
+                    text += cleanText + '\n';
+                }
+            }
+
+            if (text.length > 500) {
+                return `Contenido extraído de ${filename}:\n\n${text.substring(0, 1000)}...\n\n[Contenido truncado - Use el servidor para conversión completa]`;
+            } else if (text.length > 0) {
+                return `Contenido extraído de ${filename}:\n\n${text}`;
+            } else {
+                return `Archivo: ${filename}\n\nNo se pudo extraer texto legible. Use el servidor para conversión completa.`;
+            }
+        } catch (error) {
+            return `Archivo: ${filename}\n\nError al extraer contenido: ${error.message}`;
+        }
+    }
+
+    // ========== FUNCIONES PARA HISTORIAL ==========
+
+    // Descargar desde historial
+    function downloadFromHistory(index) {
+        const item = conversionHistory[index];
+        if (item && item.pdfUrl) {
+            downloadPDF(item.pdfUrl, item.pdfName);
+            showSuccess(`PDF descargado: ${item.pdfName}`);
+        } else {
+            showError('El PDF no está disponible para descarga.');
+        }
+    }
+
+    // Eliminar del historial
+    function deleteFromHistory(type, index) {
+        if (confirm('¿Estás seguro de que deseas eliminar este archivo del historial?')) {
+            if (type === 'conversion') {
+                // Liberar URL del objeto
+                if (conversionHistory[index] && conversionHistory[index].pdfUrl) {
+                    URL.revokeObjectURL(conversionHistory[index].pdfUrl);
+                }
+                conversionHistory.splice(index, 1);
+            } else if (type === 'uploaded') {
+                uploadedFiles.splice(index, 1);
+            }
+
+            saveToLocalStorage();
+            loadHistory();
+            showSuccess('Elemento eliminado del historial');
+        }
+    }
+
+    // Descargar archivo desde el servidor (Cloud)
+    async function downloadCloudFile(versionId) {
+        try {
+            const response = await fetch(`${API_URL}/api/v1/files/download/${versionId}`, {
+                headers: { 'Authorization': `Bearer ${getToken()}` }
+            });
+
+            if (!response.ok) throw new Error('No se pudo descargar el archivo');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            // Extraer nombre del header si es posible
+            // Extraer nombre del header si es posible
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'documento'; // Default sin extensión
+
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1];
+                }
+            } else {
+                console.warn('⚠️ No Content-Disposition header found, falling back to default name.');
+                // Intentar derivar extensión del content-type
+                const contentType = response.headers.get('content-type');
+                if (contentType === 'application/pdf') filename += '.pdf';
+                else if (contentType.includes('word')) filename += '.docx';
+                else if (contentType.includes('sheet')) filename += '.xlsx';
+                else if (contentType.includes('presentation')) filename += '.pptx';
+            }
+
+            downloadPDF(url, filename);
+            showSuccess('Descargando archivo desde el servidor...');
+
+            setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    // Eliminar documento de la nube
+    async function deleteCloudDocument(docId) {
+        try {
+            const response = await fetch(`${API_URL}/api/v1/files/${docId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${getToken()}` }
+            });
+
+            if (!response.ok) throw new Error('No se pudo eliminar el documento');
+
+            showSuccess('Documento eliminado correctamente');
+            await loadHistory();
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    // Descargar PDF
+    function downloadPDF(url, filename) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Cerrar mensajes de estado
+    function closeStatusModals() {
+        if (statusOverlay) statusOverlay.style.display = 'none';
+        if (successMessage) {
+            successMessage.style.display = 'none';
+            successMessage.classList.remove('show');
+        }
+        if (errorMessage) {
+            errorMessage.style.display = 'none';
+            errorMessage.classList.remove('show');
+        }
+    }
+
+    if (closeSuccess) closeSuccess.addEventListener('click', closeStatusModals);
+    if (closeError) closeError.addEventListener('click', closeStatusModals);
+    if (closeErrorBtn) closeErrorBtn.addEventListener('click', closeStatusModals);
+    if (statusOverlay) {
+        statusOverlay.addEventListener('click', function (e) {
+            if (e.target === statusOverlay) closeStatusModals();
+        });
+    }
+
+    // Mostrar mensaje de éxito
+    function showSuccess(message = '¡Operación completada!') {
+        if (successMessage) {
+            const successTitle = document.getElementById('successTitle');
+            const successText = document.getElementById('successMessageText');
+
+            // Lógica para el título según el tipo de mensaje
+            if (message.includes('eliminado')) {
+                if (successTitle) successTitle.innerHTML = message;
+                if (successText) successText.innerHTML = '';
+            } else if (message.includes('convertido')) {
+                if (successTitle) successTitle.innerHTML = '¡Conversión completada!';
+                if (successText) successText.innerHTML = message;
+            } else {
+                if (successTitle) successTitle.innerHTML = '¡Éxito!';
+                if (successText) successText.innerHTML = message;
+            }
+
+            // Mostrar botón de descarga solo si es un mensaje de conversión (contiene "convertido")
+            if (downloadLinkContainer) {
+                if (message.includes('convertido')) {
+                    downloadLinkContainer.style.display = 'block';
+                } else {
+                    downloadLinkContainer.style.display = 'none';
+                }
+            }
+
+            if (statusOverlay) statusOverlay.style.display = 'flex';
+            successMessage.style.display = 'flex';
+            successMessage.classList.add('show');
+
+            if (errorMessage) {
+                errorMessage.style.display = 'none';
+                errorMessage.classList.remove('show');
+            }
+
+            // Ocultar después de 6 segundos (un poco más para que de tiempo a ver el botón)
+            setTimeout(() => {
+                if (successMessage.classList.contains('show')) {
+                    closeStatusModals();
+                }
+            }, 6000);
+        }
+    }
+
+    // Mostrar mensaje de error
+    function showError(message) {
+        if (errorMessage) {
+            const errorTitle = document.getElementById('errorTitle');
+            const errorText = document.getElementById('errorMessageText');
+
+            if (errorTitle) errorTitle.innerHTML = 'Ocurrió un problema';
+            if (errorText) {
+                errorText.textContent = message;
+            }
+
+            if (statusOverlay) statusOverlay.style.display = 'flex';
+            errorMessage.style.display = 'flex';
+            errorMessage.classList.add('show');
+
+            if (successMessage) {
+                successMessage.style.display = 'none';
+                successMessage.classList.remove('show');
+            }
+        }
+    }
+
+    // Ocultar todos los mensajes
+    function hideMessages() {
+        closeStatusModals();
+    }
+
+    // ========== FUNCIONALIDAD DE COMPARTIR ==========
+
+    // Elementos del modal
+    const shareModal = document.getElementById('shareModal');
+    const shareForm = document.getElementById('shareForm');
+    const closeModal = document.querySelector('.close-modal');
+    const closeModalBtn = document.querySelector('.close-modal-btn');
+    let currentShareDocId = null;
+
+    // Función para abrir modal
+    function openShareModal(docId, docName) {
+        currentShareDocId = docId;
+        const nameEl = document.getElementById('shareFileName');
+        if (nameEl) nameEl.textContent = docName;
+
+        const emailInput = document.getElementById('shareEmail');
+        if (emailInput) emailInput.value = '';
+
+        const levelSelect = document.getElementById('shareLevel');
+        if (levelSelect) levelSelect.value = 'viewer';
+
+        // Limpiar errores previos
+        const errorEl = document.getElementById('shareError');
+        if (errorEl) {
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+        }
+
+        if (shareModal) shareModal.style.display = 'block';
+    }
+
+    // Cerrar modal
+    function closeShareModal() {
+        if (shareModal) shareModal.style.display = 'none';
+        currentShareDocId = null;
+    }
+
+    if (closeModal) closeModal.addEventListener('click', closeShareModal);
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeShareModal);
+
+    // Cerrar si se hace click fuera
+    window.addEventListener('click', function (event) {
+        if (event.target == shareModal) {
+            closeShareModal();
+        }
+    });
+
+    // Manejar envío formulario compartir
+    if (shareForm) {
+        shareForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('shareEmail').value;
+            const level = document.getElementById('shareLevel').value;
+            const errorEl = document.getElementById('shareError');
+
+            if (!email || !currentShareDocId) return;
+
+            // Limpiar error previo
+            if (errorEl) {
+                errorEl.style.display = 'none';
+                errorEl.textContent = '';
+            }
+
+            // Validar dominio
+            if (!email.toLowerCase().endsWith('@itb.edu.ec')) {
+                if (errorEl) {
+                    errorEl.textContent = 'Correo inválido: debe ser @itb.edu.ec';
+                    errorEl.style.display = 'block';
+                } else {
+                    alert('Correo inválido: debe ser @itb.edu.ec'); // Fallback
+                }
+                return;
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Compartiendo...';
+
+            try {
+                await shareDocument(currentShareDocId, email, level);
+                closeShareModal();
+                showSuccess(`Documento compartido con <b>${email}</b> correctamente.`);
+                // Recargar historial para mostrar la etiqueta "Compartido" inmediatamente
+                loadHistory();
+            } catch (error) {
+                console.error('Error compartiendo:', error);
+
+                if (errorEl) {
+                    // Mostrar error en el modal
+                    errorEl.textContent = error.message || 'Error al compartir el documento';
+                    errorEl.style.display = 'block';
+                } else {
+                    alert(error.message || 'Error al compartir el documento');
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    }
+
+    // API Call para compartir
+    async function shareDocument(docId, email, level) {
+        try {
+            const response = await fetch(`${API_URL}/api/v1/files/${docId}/share`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    permission_level: level
+                })
+            });
+
+            if (response.status === 401) {
+                console.error('🔒 Sesión expirada detectada al compartir');
+                logout();
+                return;
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                if (response.status === 404) {
+                    throw new Error('Usuario no encontrado');
+                }
+                throw new Error(errorData.detail || 'Error al compartir');
+            }
+
+            return await response.json();
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Inicializar la aplicación
+    showUploadSection();
+    updateFormatInfo();
+    console.log('✅ Conversor multi-formato listo - Soporta Word, Excel, PowerPoint');
+    console.log('📡 API Backend configurada en:', API_URL);
+
+    // Verificar conexión con el servidor
+    checkServerConnection();
+
+    // Función para verificar conexión con el servidor
+    async function checkServerConnection() {
+        try {
+            const response = await fetch(`${API_URL}/health`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (response.ok) {
+                console.log('✅ Servidor conectado correctamente');
+            } else {
+                console.warn('⚠️  Servidor responde pero con error');
+            }
+        } catch (error) {
+            console.warn('⚠️  No se puede conectar al servidor:', error.message);
+        }
+    }
+});

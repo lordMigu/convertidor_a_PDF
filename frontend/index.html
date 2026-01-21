@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor Word a PDF | EVA-ITB</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Biblioteca para leer archivos DOCX -->
+    <script src="https://unpkg.com/mammoth@1.4.8/mammoth.browser.min.js"></script>
+    <!-- NOTA: NO cargar login-styles.css aquí -->
+    <link rel="shortcut icon" type="image/x-icon"
+        href="https://eva.itb.edu.ec/pluginfile.php/1/theme_mb2nl/favicon/1761233098/Stickers%20-%20nuevos%20-%202023_Mesa%20de%20trabajo%201%20copia%205%20%281%29%20-%20copia.ico">
+</head>
+
+<body class="index-body">
+    <!-- Header idéntico al EVA-ITB -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="main-logo">
+                        <a href="#" aria-label="EVA Instituto Tecnologico Bolivariano">
+                            <img class="logo-light"
+                                src="https://eva.itb.edu.ec/pluginfile.php/1/theme_mb2nl/logo/1761233098/Stickers%20-%20nuevos%20-%202023_Mesa%20de%20trabajo%201%20copia%205%20%281%29.png"
+                                alt="EVA Instituto Tecnologico Bolivariano">
+                        </a>
+                    </div>
+                    <div class="institution-info">
+                        <h1>Instituto Tecnológico Bolivariano</h1>
+                        <p>Entorno Virtual de Aprendizaje (EVA)</p>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">RN</div>
+                    <div class="user-details">
+                        <div class="user-name-role">
+                            <div style="font-weight: 600;" id="userName">Roberto Negrete</div>
+                            <div id="userRole">Estudiante - Desarrollo de Software</div>
+                        </div>
+                        <div class="user-dropdown">
+                            <button class="dropdown-toggle" id="userDropdownBtn">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu" id="userDropdownMenu">
+                                <div class="dropdown-header">
+                                    <div class="dropdown-avatar" id="dropdownAvatar">RN</div>
+                                    <div>
+                                        <div style="font-weight: 600;" id="dropdownName">Roberto Negrete</div>
+                                        <div style="font-size: 0.8rem; color: var(--itb-gray);" id="dropdownRole">
+                                            Estudiante - Desarrollo de Software</div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <a href="logout.html" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="page-title">
+                <h2><i class="fas fa-file-pdf"></i> Conversor de Archivos a PDF</h2>
+                <div class="page-subtitle">Convierte tus documentos Word, Excel, PowerPoint y TXT a PDF manteniendo el
+                    contenido</div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="nav-buttons">
+                <button class="nav-btn active" id="uploadBtn">
+                    <i class="fas fa-upload"></i> Subir Archivo
+                </button>
+                <button class="nav-btn" id="historyBtn">
+                    <i class="fas fa-history"></i> Historial
+                </button>
+                <button class="nav-btn" id="sharedBtn">
+                    <i class="fas fa-users"></i> Documentos compartidos
+                </button>
+
+            </div>
+
+            <!-- Upload section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-card" id="dropArea">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3 class="upload-title">Arrastra y suelta tu archivo aquí</h3>
+                    <p class="upload-info">Formatos soportados: .doc, .docx, .xls, .xlsx, .ppt, .pptx, .txt, .rtf.
+                        Tamaño máximo: 50MB</p>
+
+                    <div class="file-input-wrapper">
+                        <button class="btn" id="selectFileBtn">
+                            <i class="fas fa-file-upload"></i> Seleccionar archivo
+                        </button>
+                        <input type="file" class="file-input" id="fileInput"
+                            accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf">
+                    </div>
+
+                    <div class="file-info" id="fileInfo">
+                        <div class="file-header">
+                            <div class="file-name">
+                                <i class="fas fa-file-word" id="fileIcon"></i>
+                                <span id="fileName">documento_ejemplo.docx</span>
+                            </div>
+                            <button class="btn btn-sm" id="removeFileBtn">
+                                <i class="fas fa-times"></i> Cambiar
+                            </button>
+                        </div>
+
+                        <div class="file-details">
+                            <div class="detail-item size">
+                                <i class="fas fa-weight-hanging"></i>
+                                <span>Tamaño:</span>
+                                <strong id="fileSize">2.4 MB</strong>
+                            </div>
+                            <div class="detail-item date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Fecha modificación:</span>
+                                <strong id="fileDate">15/03/2024</strong>
+                            </div>
+                            <div class="detail-item type">
+                                <i class="fas fa-file-alt"></i>
+                                <span>Tipo:</span>
+                                <strong id="fileType">Documento Word</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History section -->
+            <section class="history-section" id="historySection" style="display: none;">
+                <div class="history-header">
+                    <h3><i class="fas fa-history"></i> Historial de Conversiones</h3>
+                    <p>Archivos convertidos anteriormente</p>
+                </div>
+
+                <div class="history-files" id="historyFiles">
+                    <!-- Los archivos del historial se cargarán aquí dinámicamente -->
+                    <div class="no-history">
+                        <i class="fas fa-history fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
+                        <p>No hay conversiones en el historial</p>
+                        <p style="font-size: 0.9rem; color: var(--itb-gray);">Los archivos que conviertas aparecerán
+                            aquí</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shared Documents section -->
+            <section class="history-section" id="sharedSection" style="display: none;">
+                <div class="history-header">
+                    <h3><i class="fas fa-users"></i> Documentos Compartidos</h3>
+                    <p>Archivos que otros usuarios han compartido contigo</p>
+                </div>
+
+                <div class="history-files" id="sharedFiles">
+                    <!-- Los archivos compartidos se cargarán aquí dinámicamente -->
+                    <div class="no-history">
+                        <i class="fas fa-folder-open fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
+                        <p>No tienes documentos compartidos</p>
+                        <p style="font-size: 0.9rem; color: var(--itb-gray);">Los documentos que compartan contigo
+                            aparecerán aquí</p>
+                    </div>
+                </div>
+            </section>
+
+
+
+            <!-- Conversion options -->
+            <section class="conversion-options" id="conversionOptions">
+                <h3 class="options-title"><i class="fas fa-sliders-h"></i> Opciones de Conversión</h3>
+                <div class="options-grid">
+                    <div class="option-item">
+                        <div class="option-header">
+                            <i class="fas fa-file-alt"></i>
+                            <h4>Calidad del PDF</h4>
+                        </div>
+                        <select class="option-select" id="qualitySelect">
+                            <option value="high">Alta calidad (recomendado)</option>
+                            <option value="medium">Calidad media</option>
+                            <option value="low">Tamaño reducido</option>
+                        </select>
+                    </div>
+
+                    <div class="option-item">
+                        <div class="option-header">
+                            <i class="fas fa-lock"></i>
+                            <h4>Protección del PDF</h4>
+                        </div>
+                        <select class="option-select" id="protectionSelect">
+                            <option value="none">Sin protección</option>
+                            <option value="readonly">Solo lectura</option>
+                            <option value="password">Con contraseña</option>
+                        </select>
+                    </div>
+
+                    <div class="option-item">
+                        <div class="option-header">
+                            <i class="fas fa-font"></i>
+                            <h4>Incrustar fuentes</h4>
+                        </div>
+                        <select class="option-select" id="fontSelect">
+                            <option value="yes">Sí, incrustar todas</option>
+                            <option value="standard">Solo fuentes estándar</option>
+                            <option value="no">No incrustar</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action buttons -->
+            <div class="action-buttons">
+                <button class="btn" id="convertBtn">
+                    <i class="fas fa-sync-alt"></i> Convertir a PDF
+                </button>
+                <button class="btn" id="clearHistoryBtn" style="display: none;">
+                    <i class="fas fa-trash-alt"></i> Eliminar Historial
+                </button>
+                <button class="btn" id="clearSharedBtn" style="display: none;">
+                    <i class="fas fa-trash-alt"></i> Eliminar Documentos
+                </button>
+            </div>
+
+            <!-- Ventanas emergentes de estado (Modales) -->
+            <div class="status-overlay" id="statusOverlay" style="display: none;">
+                <div class="status-message" id="successMessage" style="display: none;">
+                    <div class="close-status" id="closeSuccess">&times;</div>
+                    <i class="fas fa-check-circle" style="color: var(--itb-success);"></i>
+                    <div>
+                        <div id="successTitle">¡Éxito!</div>
+                        <div id="successMessageText">El archivo PDF está listo para descargar.</div>
+                        <div style="margin-top: 25px; display: none;" id="downloadLinkContainer">
+                            <a href="#" class="btn" id="downloadLink">
+                                <i class="fas fa-download"></i> Descargar ahora
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-message" id="errorMessage" style="display: none;">
+                    <div class="close-status" id="closeError">&times;</div>
+                    <i class="fas fa-exclamation-circle" style="color: var(--itb-accent);"></i>
+                    <div>
+                        <div id="errorTitle">Ocurrió un problema</div>
+                        <div id="errorMessageText">El archivo no pudo ser convertido. Intente nuevamente.</div>
+                        <div style="margin-top: 25px;">
+                            <button class="btn-secondary" id="closeErrorBtn" style="padding: 10px 25px;">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Compartir Documento</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="shareFileName" class="share-file-name">Documento.docx</p>
+                <form id="shareForm">
+                    <div class="form-group">
+                        <label for="shareEmail">Correo electrónico del usuario:</label>
+                        <input type="email" id="shareEmail" class="form-control" placeholder="usuario@itb.edu.ec"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shareLevel">Permiso:</label>
+                        <select id="shareLevel" class="form-control">
+                            <option value="viewer">Lector (Solo ver)</option>
+                            <option value="editor">Editor (Puede eliminar/actualizar)</option>
+                        </select>
+                    </div>
+
+                    <div id="shareError" class="modal-error-message" style="display: none;"></div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary close-modal-btn">Cancelar</button>
+                        <button type="submit" class="btn">Compartir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth-utils.js"></script>
+    <script src="script.js"></script>
+    <script src="user-dropdown.js"></script>
+</body>
+
+</html>
