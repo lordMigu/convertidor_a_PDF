@@ -86,7 +86,19 @@
                 <button class="nav-btn" id="sharedBtn">
                     <i class="fas fa-users"></i> Documentos compartidos
                 </button>
+                <button class="nav-btn" id="validateBtn">
+                    <i class="fas fa-file-signature"></i> Validar Firma
+                </button>
 
+            </div>
+
+            <!-- Simulation Toggle (Demo Mode) -->
+            <div class="sim-toggle-container">
+                <span class="sim-label"><i class="fas fa-flask"></i> MODO DEMO (Simulación)</span>
+                <label class="sim-switch">
+                    <input type="checkbox" id="globalSimToggle" checked>
+                    <span class="sim-slider"></span>
+                </label>
             </div>
 
             <!-- Upload section -->
@@ -158,8 +170,8 @@
             <!-- Shared Documents section -->
             <section class="history-section" id="sharedSection" style="display: none;">
                 <div class="history-header">
-                    <h3><i class="fas fa-users"></i> Documentos Compartidos</h3>
-                    <p>Archivos que otros usuarios han compartido contigo</p>
+                    <h3><i class="fas fa-users"></i> Documentos Compartidos Conmigo</h3>
+                    <p>Archivos que otros usuarios han compartido para tu revisión o edición</p>
                 </div>
 
                 <div class="history-files" id="sharedFiles">
@@ -173,7 +185,42 @@
                 </div>
             </section>
 
+            <!-- Validate Signature section -->
+            <section class="history-section" id="validateSection" style="display: none;">
+                <div class="history-header">
+                    <h3><i class="fas fa-file-signature"></i> Validación de Firma Digital</h3>
+                    <p>Sube un documento PDF para verificar la autenticidad de su firma</p>
+                </div>
 
+                <div class="upload-card" id="dropAreaValidate" style="border-style: dashed; padding: 30px;">
+                    <i class="fas fa-search-plus upload-icon" style="font-size: 40px; margin-bottom: 15px;"></i>
+                    <h3 style="font-size: 1.2rem;">Selecciona el PDF a validar</h3>
+                    <div class="file-input-wrapper" style="margin-top: 20px;" id="validateRealInput">
+                        <button class="btn btn-sm" id="selectValidateBtn">
+                            <i class="fas fa-search"></i> Buscar PDF
+                        </button>
+                        <input type="file" class="file-input" id="validateInput" accept=".pdf">
+                    </div>
+
+                    <div id="validateSimInput" style="margin-top: 20px; display: block;">
+                        <div class="sim-info-box">
+                            <i class="fas fa-file-pdf sim-info-icon"></i>
+                            <div class="sim-info-text">
+                                <h5>Documento de Prueba.pdf</h5>
+                                <p>Listo para validación simulada</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-secondary" id="simulateValidateBtn" style="background: #e67e22;">
+                            <i class="fas fa-play"></i> Validar Documento de Prueba
+                        </button>
+                    </div>
+                </div>
+
+                <div id="validationResult" class="history-files"
+                    style="display: none; margin-top: 30px; background: white; padding: 20px;">
+                    <!-- Los resultados aparecerán aquí -->
+                </div>
+            </section>
 
             <!-- Conversion options -->
             <section class="conversion-options" id="conversionOptions">
@@ -260,6 +307,55 @@
             </div>
         </div>
     </main>
+
+    <!-- Signature Modal -->
+    <div id="signModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-pen-nib"></i> Firmar Documento Digitalmente</h3>
+                <span class="close-modal-sign">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="signFileName" class="share-file-name">Documento.pdf</p>
+                <form id="signForm">
+                    <div id="signRealInputs" style="display: none;">
+                        <div class="form-group">
+                            <label for="p12File">Certificado Digital (.p12, .pfx):</label>
+                            <input type="file" id="p12File" class="form-control" accept=".p12,.pfx">
+                            <small style="color: var(--itb-gray);">Sube tu archivo de firma electrónica.</small>
+                        </div>
+                    </div>
+
+                    <div id="signSimInputs" style="display: block;">
+                        <div class="sim-info-box">
+                            <i class="fas fa-id-card sim-info-icon"></i>
+                            <div class="sim-info-text">
+                                <h5>Certificado Virtual Activo</h5>
+                                <p>Titular: ROBERTO ALEXIS NEGRETE</p>
+                                <p>Vencimiento: 20/09/2026</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="p12Password">Contraseña del certificado:</label>
+                        <input type="password" id="p12Password" class="form-control"
+                            placeholder="Cualquier clave en simulación" required>
+                    </div>
+
+                    <div id="signError" class="modal-error-message"
+                        style="display: none; color: #e74c3c; margin-bottom: 15px; font-size: 0.9rem;"></div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary close-modal-sign-btn">Cancelar</button>
+                        <button type="submit" class="btn" id="confirmSignBtn">
+                            <i class="fas fa-check-circle"></i> Procesar Firma
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Share Modal -->
     <div id="shareModal" class="modal">

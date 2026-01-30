@@ -24,6 +24,7 @@ from app.schemas.document import (
     PermissionResponse
 )
 from app.core.config import get_settings
+from app.core.converters import ConverterFactory
 
 router = APIRouter(
     prefix="/api/v1/files",
@@ -51,16 +52,40 @@ async def upload_file(
     # Generar nombre único para el archivo en disco
     file_ext = os.path.splitext(file.filename)[1].lower()
     unique_filename = f"{uuid.uuid4()}{file_ext}"
-    file_path = UPLOAD_DIR / unique_filename
+    source_path = UPLOAD_DIR / unique_filename
     
     # Leer contenido y guardar en disco
     content = await file.read()
-    file_size = len(content)
     
-    with open(file_path, "wb") as buffer:
+    print(f"DEBUG: upload_file hit. File: {file.filename}, User ID: {current_user.id}")
+    with open(source_path, "wb") as buffer:
         buffer.write(content)
+    print(f"DEBUG: Saved source to {source_path}")
         
+    pdf_path = None
     try:
+        # 2. INTEGRACIÓN: Realizar conversión a PDF inmediatamente antes de registrar
+        # Esto asegura que en el historial solo queden los productos finales (.pdf)
+        converter = ConverterFactory.get_converter()
+        temp_dir = source_path.parent
+        pdf_path = await converter.convert(source_path, temp_dir)
+        
+        # Leer el contenido del PDF generado para persistirlo
+        with open(pdf_path, "rb") as f:
+            pdf_content = f.read()
+            file_size = len(pdf_content)
+        
+        # Generar nombre único final para el PDF en el repositorio permanente (uploads)
+        final_pdf_name = f"{uuid.uuid4()}.pdf"
+        final_pdf_path = UPLOAD_DIR / final_pdf_name
+        
+        with open(final_pdf_path, "wb") as buffer:
+            buffer.write(pdf_content)
+        print(f"DEBUG: Saved PDF to {final_pdf_path}")
+
+        # Nombre amigable que verá el usuario (siempre con .pdf)
+        pdf_display_name = f"{Path(file.filename).stem}.pdf"
+
         if parent_id:
             # Nueva versión para documento existente
             # ADICIÓN SEMANA 4: Verificar que tiene permiso de EDITOR para subir versión
@@ -87,9 +112,10 @@ async def upload_file(
             new_v_num = "v1.0"
             if last_version:
                 try:
-                    v_parts = last_version.version_number.replace('v', '').split('.')
+                    v_num_str = last_version.version_number.replace('v', '').split('-')[0]
+                    v_parts = v_num_str.split('.')
                     major = int(v_parts[0])
-                    minor = int(v_parts[1])
+                    minor = int(v_parts[1]) if len(v_parts) > 1 else 0
                     new_v_num = f"v{major}.{minor + 1}"
                 except:
                     new_v_num = "v1.1" # Fallback
@@ -97,9 +123,9 @@ async def upload_file(
             version = Version(
                 document_id=parent_id,
                 version_number=new_v_num,
-                file_path=str(file_path),
+                file_path=str(final_pdf_path),
                 file_size=file_size,
-                mime_type=file.content_type,
+                mime_type="application/pdf",
                 is_latest=True
             )
             db.add(version)
@@ -109,7 +135,7 @@ async def upload_file(
         else:
             # Nuevo documento
             document = Document(
-                name=file.filename,
+                name=pdf_display_name,
                 user_id=current_user.id
             )
             db.add(document)
@@ -118,9 +144,9 @@ async def upload_file(
             version = Version(
                 document_id=document.id,
                 version_number="v1.0",
-                file_path=str(file_path),
+                file_path=str(final_pdf_path),
                 file_size=file_size,
-                mime_type=file.content_type,
+                mime_type="application/pdf",
                 is_latest=True
             )
             db.add(version)
@@ -135,17 +161,29 @@ async def upload_file(
             
             await db.commit()
             await db.refresh(document)
+            print(f"DEBUG: Registered document ID {document.id}")
 
-        # Preparar respuesta
-        res = DocumentResponse.from_orm(document)
-        res.latest_version = VersionResponse.from_orm(version)
-        return res
+        return FileResponse(
+            path=final_pdf_path,
+            filename=pdf_display_name,
+            media_type="application/pdf",
+            headers={
+                "X-Document-ID": str(document.id),
+                "X-Version-ID": str(version.id)
+            }
+        )
         
     except Exception as e:
-        # Si algo falla, intentar borrar el archivo para no dejar basura
-        if file_path.exists():
-            file_path.unlink()
+        # Limpiar archivos en caso de error
+        if pdf_path and pdf_path.exists():
+            pdf_path.unlink()
         raise e
+    finally:
+        # Siempre limpiar archivo original temporal
+        if source_path.exists():
+            source_path.unlink()
+        if pdf_path and pdf_path.exists():
+            pdf_path.unlink()
 
 
 @router.get("/my-documents", response_model=List[DocumentResponse])
@@ -225,6 +263,8 @@ async def download_file(
     file_path = Path(version.file_path)
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="El archivo físico no existe en el servidor")
+    
+    print(f"DEBUG: Serving file for download. Path: {file_path}, Filename: {version.document.name}")
     
     return FileResponse(
         path=file_path,

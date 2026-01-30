@@ -40,6 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const sharedBtn = document.getElementById('sharedBtn');
     const sharedSection = document.getElementById('sharedSection');
     const sharedFiles = document.getElementById('sharedFiles');
+    const validateBtn = document.getElementById('validateBtn');
+    const validateSection = document.getElementById('validateSection');
     const conversionOptions = document.getElementById('conversionOptions');
     const formatInfo = document.getElementById('formatInfo');
 
@@ -81,9 +83,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (sharedBtn) {
             sharedBtn.addEventListener('click', function () {
+                console.log('🔘 Click en botón Compartidos');
                 showSharedSection();
             });
         }
+
+        if (validateBtn) {
+            validateBtn.addEventListener('click', function () {
+                showValidateSection();
+            });
+        }
+    }
+
+    // ========== GESTIÓN DE MODO SIMULACIÓN (GLOBAL) ==========
+    const globalSimToggle = document.getElementById('globalSimToggle');
+
+    function updateSimulationUI() {
+        const isSim = globalSimToggle.checked;
+
+        // Elementos de Firma
+        const signRealInputs = document.getElementById('signRealInputs');
+        const signSimInputs = document.getElementById('signSimInputs');
+        if (signRealInputs) signRealInputs.style.display = isSim ? 'none' : 'block';
+        if (signSimInputs) signSimInputs.style.display = isSim ? 'block' : 'none';
+
+        // Elementos de Validación
+        const validateRealInput = document.getElementById('validateRealInput');
+        const validateSimInput = document.getElementById('validateSimInput');
+        if (validateRealInput) validateRealInput.style.display = isSim ? 'none' : 'block';
+        if (validateSimInput) validateSimInput.style.display = isSim ? 'block' : 'none';
+
+        console.log(`🚀 Modo Simulación: ${isSim ? 'ACTIVADO' : 'DESACTIVADO'}`);
+    }
+
+    if (globalSimToggle) {
+        globalSimToggle.addEventListener('change', updateSimulationUI);
+        updateSimulationUI(); // Estado inicial
     }
 
     // Mostrar sección de subir archivo
@@ -97,9 +132,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
         if (clearSharedBtn) clearSharedBtn.style.display = 'none';
 
-        // Ocultar sección compartida
+        // Ocultar otras secciones
         if (sharedSection) sharedSection.style.display = 'none';
         if (sharedBtn) sharedBtn.classList.remove('active');
+        if (validateSection) validateSection.style.display = 'none';
+        if (validateBtn) validateBtn.classList.remove('active');
 
         hideMessages();
     }
@@ -115,30 +152,62 @@ document.addEventListener('DOMContentLoaded', function () {
         if (clearHistoryBtn) clearHistoryBtn.style.display = 'block';
         if (clearSharedBtn) clearSharedBtn.style.display = 'none';
 
-        // Ocultar sección compartida
+        // Ocultar otras secciones
         if (sharedSection) sharedSection.style.display = 'none';
         if (sharedBtn) sharedBtn.classList.remove('active');
+        if (validateSection) validateSection.style.display = 'none';
+        if (validateBtn) validateBtn.classList.remove('active');
 
         loadHistory();
     }
 
-    // Mostrar sección de documentos compartidos
     function showSharedSection() {
-        uploadSection.style.display = 'none';
-        historySection.style.display = 'none';
-        if (sharedSection) sharedSection.style.display = 'block';
+        console.log('📂 Mostrando sección de documentos compartidos...');
+        uploadSection.style.setProperty('display', 'none', 'important');
+        historySection.style.setProperty('display', 'none', 'important');
+        if (validateSection) validateSection.style.setProperty('display', 'none', 'important');
+
+        if (sharedSection) {
+            sharedSection.style.setProperty('display', 'block', 'important');
+            console.log('✅ sharedSection display set to block (forced)');
+        } else {
+            console.error('❌ ERROR: sharedSection element not found!');
+        }
 
         if (conversionOptions) conversionOptions.style.display = 'none';
 
         uploadBtn.classList.remove('active');
         historyBtn.classList.remove('active');
         if (sharedBtn) sharedBtn.classList.add('active');
+        if (validateBtn) validateBtn.classList.remove('active');
 
         if (convertBtn) convertBtn.style.display = 'none';
         if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
         if (clearSharedBtn) clearSharedBtn.style.display = 'block';
 
+        hideMessages();
         loadDocuments(); // Cargar todos los documentos
+    }
+
+    // Mostrar sección de validación
+    function showValidateSection() {
+        uploadSection.style.display = 'none';
+        historySection.style.display = 'none';
+        if (sharedSection) sharedSection.style.display = 'none';
+        if (validateSection) validateSection.style.display = 'block';
+
+        if (conversionOptions) conversionOptions.style.display = 'none';
+
+        uploadBtn.classList.remove('active');
+        historyBtn.classList.remove('active');
+        if (sharedBtn) sharedBtn.classList.remove('active');
+        if (validateBtn) validateBtn.classList.add('active');
+
+        if (convertBtn) convertBtn.style.display = 'none';
+        if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
+        if (clearSharedBtn) clearSharedBtn.style.display = 'none';
+
+        hideMessages();
     }
 
     // Cargar datos desde localStorage
@@ -182,8 +251,20 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!historyFiles) return;
 
         let historyHTML = '';
-        let sharedHTML = ''; // HTML para docs compartidos
+        let sharedHTML = '';
         let backendDocs = [];
+
+        console.log('🔄 Sincronizando documentos...');
+
+        // Mostrar estado de carga solo si la sección relevante está activa
+        const loadingSpinner = `
+            <div style="text-align: center; padding: 30px;">
+                <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--itb-secondary); margin-bottom: 15px;"></i>
+                <p>Cargando lista...</p>
+            </div>`;
+
+        if (historySection && historySection.style.display !== 'none') historyFiles.innerHTML = loadingSpinner;
+        if (sharedSection && sharedSection.style.display !== 'none' && sharedFiles) sharedFiles.innerHTML = loadingSpinner;
 
         if (isAuthenticated()) {
             try {
@@ -191,7 +272,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: { 'Authorization': `Bearer ${getToken()}` }
                 });
                 if (response.status === 401) {
-                    console.error('🔒 Sesión expirada o no autorizada');
                     logout();
                     return;
                 }
@@ -199,173 +279,150 @@ document.addEventListener('DOMContentLoaded', function () {
                     backendDocs = await response.json();
                 }
             } catch (error) {
-                console.error('Error cargando documentos del backend:', error);
+                console.error('❌ Error API:', error);
             }
         }
 
-        // Filtrar conversiones locales si ya están en el backend
-        let localHistoryToShow = conversionHistory;
-        if (isAuthenticated() && backendDocs.length > 0) {
-            localHistoryToShow = conversionHistory.filter(item =>
-                !backendDocs.some(doc => doc.name === item.originalName)
-            );
-        }
+        // Filtrar historial local (archivos que aún no están en la nube)
+        const localHistoryToShow = conversionHistory.filter(item =>
+            !backendDocs.some(doc =>
+                doc.name === item.originalName ||
+                doc.name === item.pdfName ||
+                doc.name === item.originalName.replace(/\.[^/.]+$/, "") + ".pdf"
+            )
+        );
 
-        if (conversionHistory.length === 0 && uploadedFiles.length === 0 && backendDocs.length === 0) {
-            historyFiles.innerHTML = `
-                <div class="no-history">
-                    <i class="fas fa-history fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
-                    <p>No hay conversiones en el historial</p>
-                    <p style="font-size: 0.9rem; color: var(--itb-gray);">Los archivos que conviertas aparecerán aquí</p>
-                </div>
-            `;
-            if (sharedFiles) {
-                sharedFiles.innerHTML = `
-                        <div class="no-history">
-                            <i class="fas fa-folder-open fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
-                            <p>No tienes documentos compartidos</p>
-                            <p style="font-size: 0.9rem; color: var(--itb-gray);">Los documentos que compartan contigo aparecerán aquí</p>
-                        </div>
-                    `;
-            }
-            return;
-        }
-
-        // Filtramos documentos: Propios vs Compartidos
+        // --- RENDERIZAR HISTORIAL ---
         const ownedDocs = backendDocs.filter(d => d.is_owner);
-        const sharedDocs = backendDocs.filter(d => !d.is_owner);
 
-        // Renderizar Propios en Historial
         if (ownedDocs.length > 0) {
-            renderDocumentList(ownedDocs, true, (html) => historyHTML += html);
+            historyHTML += `<h3 style="margin: 20px 0 10px; color: var(--itb-primary);">Mis Documentos</h3>`;
+            ownedDocs.forEach(doc => historyHTML += generateDocumentHTML(doc));
         }
-
-        // Renderizar Compartidos en Sección Compartida
-        if (sharedDocs.length > 0 && sharedFiles) {
-            renderDocumentList(sharedDocs, false, (html) => sharedHTML += html);
-        } else if (sharedFiles) {
-            sharedFiles.innerHTML = `
-                        <div class="no-history">
-                            <i class="fas fa-folder-open fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
-                            <p>No tienes documentos compartidos</p>
-                            <p style="font-size: 0.9rem; color: var(--itb-gray);">Los documentos que compartan contigo aparecerán aquí</p>
-                        </div>
-                    `;
-        }
-
-
-        // ... (Continuación de historial local) ...
 
         if (localHistoryToShow.length > 0) {
-            historyHTML += `<h3 style="margin: 30px 0 10px; color: var(--itb-primary);">Conversiones recientes (Local)</h3>`;
-
-            localHistoryToShow.forEach((item, index) => {
-                // El index original en conversionHistory es importante para delete/download
+            historyHTML += `<h3 style="margin: 30px 0 10px; color: var(--itb-primary);">Conversiones locales</h3>`;
+            localHistoryToShow.forEach(item => {
                 const actualIndex = conversionHistory.findIndex(h => h.id === item.id);
-
                 const iconClass = getFileIconClass(item.originalType);
-                const date = new Date(item.date).toLocaleDateString('es-ES', {
-                    day: '2-digit', month: '2-digit', year: 'numeric'
-                });
-
                 historyHTML += `
                     <div class="history-item">
                         <div class="history-file-info">
                             <i class="fas ${iconClass} history-file-icon" style="color: ${getFileIconColor(item.originalType)}"></i>
                             <div class="history-file-details">
                                 <h4>${item.originalName} → PDF</h4>
-                                <div class="history-file-meta">
-                                    <span><i class="fas fa-calendar-alt"></i> ${date}</span>
-                                    <span><i class="fas fa-weight-hanging"></i> ${item.originalSize}</span>
-                                </div>
                             </div>
                         </div>
                         <div class="history-file-actions">
-                            <button class="btn download-pdf-btn" data-index="${actualIndex}">
-                                <i class="fas fa-download"></i>
-                            </button>
-                            <button class="btn-secondary delete-history-btn" data-index="${actualIndex}">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <button class="btn download-pdf-btn" data-index="${actualIndex}"><i class="fas fa-download"></i></button>
+                            <button class="btn-secondary delete-history-btn" data-index="${actualIndex}"><i class="fas fa-trash"></i></button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
-        historyFiles.innerHTML = historyHTML;
-        if (sharedFiles && sharedHTML) {
-            sharedFiles.innerHTML = sharedHTML;
+        historyFiles.innerHTML = historyHTML || `
+            <div class="no-history">
+                <i class="fas fa-history fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
+                <p>No hay archivos en tu historial</p>
+                <p style="font-size: 0.9rem; color: var(--itb-gray);">Convierte archivos para verlos aquí</p>
+            </div>`;
+
+
+        // --- RENDERIZAR COMPARTIDOS ---
+        const sharedDocs = backendDocs.filter(d => !d.is_owner);
+
+        if (sharedDocs.length > 0) {
+            sharedHTML += `<h3 style="margin: 20px 0 10px; color: var(--itb-primary);">Documentos Compartidos</h3>`;
+            sharedDocs.forEach(doc => sharedHTML += generateDocumentHTML(doc));
+        }
+
+        if (sharedFiles) {
+            sharedFiles.innerHTML = sharedHTML || `
+                <div class="no-history">
+                    <i class="fas fa-folder-open fa-3x" style="color: var(--itb-gray); margin-bottom: 20px;"></i>
+                    <p>No tienes documentos compartidos</p>
+                    <p style="font-size: 0.9rem; color: var(--itb-gray);">Los archivos que otros compartan contigo aparecerán aquí</p>
+                </div>`;
         }
 
         attachSharedEvents();
     }
 
-    // Función auxiliar para renderizar listas de documentos
-    function renderDocumentList(docs, isMyDocs, appendHtmlCallback) {
-        if (isMyDocs) {
-            appendHtmlCallback(`<h3 style="margin: 20px 0 10px; color: var(--itb-primary);">Mis Documentos</h3>`);
+
+
+    function generateDocumentHTML(doc) {
+        const v = doc.latest_version;
+        const fileExt = doc.name.split('.').pop().toLowerCase();
+        const iconClass = getFileIconClass(fileExt);
+        const permission = doc.permission || (doc.is_owner ? 'owner' : 'viewer');
+        const isOwner = permission === 'owner';
+        const canUpdate = isOwner || permission === 'editor';
+        const isShared = !isOwner || doc.shared_with_others;
+
+        // Limpiar el número de versión - si ya empieza con "v", quitarlo
+        let versionNumber = '1.0';
+        if (v && v.version_number) {
+            versionNumber = v.version_number.toString();
+            // Si empieza con "v" o "V", quitarlo
+            versionNumber = versionNumber.replace(/^[vV]/, '');
         }
 
-        docs.forEach(doc => {
-            const v = doc.latest_version;
-            const fileExt = doc.name.split('.').pop();
-            const iconClass = getFileIconClass(fileExt);
-            const date = new Date(doc.created_at).toLocaleDateString('es-ES', {
-                day: '2-digit', month: '2-digit', year: 'numeric'
-            });
+        // Versión en badge azul claro (#3498db = azul ITB)
+        const versionBadge = `<span class="badge" style="background: #3498db; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-right: 5px; font-weight: normal; display: inline-block; line-height: 1;">v${versionNumber}</span>`;
 
-            const permission = doc.permission || (doc.is_owner ? 'owner' : 'viewer');
-            const isOwner = permission === 'owner';
-            const canEdit = permission === 'owner' || permission === 'editor'; // Editor también puede compartir? Asumamos que no, solo Owner.
+        // Badge "Compartido" con estilo naranja
+        const sharedBadge = isShared ?
+            '<span class="badge" style="background: #e67e22; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: normal; display: inline-block; line-height: 1;">Compartido</span>' : '';
 
-            // Solo OWNER puede compartir según requerimiento
-            const canShare = isOwner;
+        const roleLabel = isOwner ? 'Propietario' : (permission === 'editor' ? 'Editor' : 'Lector');
 
-            // Badge de compartido - Ahora también sale si el dueño lo compartió con otros
-            const isShared = !isOwner || doc.shared_with_others;
-            const sharedBadge = isShared ? '<span class="badge" style="background: #e67e22; font-size: 0.7rem; padding: 2px 5px; border-radius: 4px; color: white; margin-left: 5px;">Compartido</span>' : '';
+        // Obtener información del archivo
+        const fileSize = v && v.file_size ? formatFileSize(v.file_size) : 'N/A';
+        const uploadDate = v && v.created_at ? new Date(v.created_at).toLocaleDateString('es-ES') : 'N/A';
 
-            // Estados de botones
-            const deleteDisabled = !isOwner ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : '';
-            // Ocultar Nueva Versión si es viewer (solo editor/owner pueden)
-            const updateStyle = !canEdit ? 'display: none;' : '';
-
-            const html = `
-                <div class="history-item">
-                    <div class="history-file-info">
-                        <i class="fas ${iconClass} history-file-icon" style="color: ${getFileIconColor(fileExt)}"></i>
-                        <div class="history-file-details">
-                            <h4>${doc.name} 
-                                <span class="badge" style="background: var(--itb-secondary); font-size: 0.7rem; padding: 2px 5px; border-radius: 4px; color: white;">${v ? v.version_number : 'v1.0'}</span>
-                                ${sharedBadge}
-                            </h4>
-                            <div class="history-file-meta">
-                                <span><i class="fas fa-calendar-alt"></i> ${date}</span>
-                                <span><i class="fas fa-weight-hanging"></i> ${v ? formatFileSize(v.file_size) : '-'}</span>
-                                <span><i class="fas fa-user-tag"></i> ${permission === 'owner' ? 'Propietario' : (permission === 'editor' ? 'Editor' : 'Lector')}</span>
-                            </div>
+        return `
+            <div class="history-item">
+                <div class="history-file-info">
+                    <i class="fas ${iconClass} history-file-icon" style="color: ${getFileIconColor(fileExt)}"></i>
+                    <div class="history-file-details">
+                        <h4 style="margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
+                            ${doc.name} ${versionBadge} ${sharedBadge}
+                        </h4>
+                        <div class="history-file-meta">
+                            <span><i class="fas fa-calendar-alt"></i> ${uploadDate}</span>
+                            <span><i class="fas fa-weight-hanging"></i> ${fileSize}</span>
+                            <span><i class="fas fa-user-tag"></i> ${roleLabel}</span>
                         </div>
                     </div>
-                    <div class="history-file-actions">
-                        <button class="btn download-cloud-btn" data-id="${v ? v.id : ''}" title="Descargar">
-                            <i class="fas fa-download"></i>
-                        </button>
-                        ${canShare ? `<button class="btn-secondary share-doc-btn" data-id="${doc.id}" data-name="${doc.name}" title="Compartir">
+                </div>
+                <div class="history-file-actions">
+                    <button class="btn download-cloud-btn" data-id="${v ? v.id : ''}" title="Descargar">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    ${fileExt.toLowerCase() === 'pdf' ?
+                `<button class="btn-secondary sign-doc-btn" data-id="${doc.id}" data-name="${doc.name}" title="Firmar">
+                            <i class="fas fa-pen-nib"></i>
+                        </button>` : ''}
+                    ${isOwner ?
+                `<button class="btn-secondary share-doc-btn" data-id="${doc.id}" data-name="${doc.name}" title="Compartir">
                             <i class="fas fa-user-plus"></i>
                         </button>` : ''}
-                        <button class="btn-secondary upload-version-btn" data-id="${doc.id}" title="Nueva Versión" style="${updateStyle}">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="btn-secondary delete-cloud-btn" data-id="${doc.id}" title="Eliminar" ${deleteDisabled}>
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+                    <button class="btn-secondary upload-version-btn" data-id="${doc.id}" title="Nueva Versión" 
+                            style="${canUpdate ? '' : 'display: none;'}">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="btn-secondary delete-cloud-btn" data-id="${doc.id}" title="Eliminar" 
+                            ${!isOwner ? 'disabled style="opacity: 0.5;"' : ''}>
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
-            `;
-            appendHtmlCallback(html);
-        });
+            </div>`;
     }
+
+
+
+
 
     function attachSharedEvents() {
         // Eventos para Cloud Download
@@ -404,6 +461,258 @@ document.addEventListener('DOMContentLoaded', function () {
                 openShareModal(docId, docName);
             };
         });
+
+        // Evento para Firmar
+        document.querySelectorAll('.sign-doc-btn').forEach(btn => {
+            btn.onclick = function () {
+                const docId = this.getAttribute('data-id');
+                const docName = this.getAttribute('data-name');
+                openSignModal(docId, docName);
+            };
+        });
+    }
+
+    // ========== FUNCIONALIDAD DE FIRMA DIGITAL (Simulación Integrada) ==========
+
+    // Elementos del DOM para el Modal de Firma
+    const signModal = document.getElementById('signModal');
+    const signForm = document.getElementById('signForm');
+    const closeModalSign = document.querySelector('.close-modal-sign');
+    const closeModalSignBtn = document.querySelector('.close-modal-sign-btn');
+    let currentSignDocId = null;
+
+    /**
+     * Abre el modal de firma para un documento específico.
+     * @param {number} docId - ID del documento en la base de datos.
+     * @param {string} docName - Nombre del archivo PDF.
+     */
+    function openSignModal(docId, docName) {
+        currentSignDocId = docId;
+        const nameEl = document.getElementById('signFileName');
+        if (nameEl) nameEl.textContent = docName;
+
+        // Limpiar campos previos
+        const p12Input = document.getElementById('p12File');
+        if (p12Input) p12Input.value = '';
+
+        const passInput = document.getElementById('p12Password');
+        if (passInput) passInput.value = '';
+
+        const errorEl = document.getElementById('signError');
+        if (errorEl) {
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+        }
+
+        if (signModal) signModal.style.display = 'block';
+    }
+
+    /**
+     * Cierra el modal de firma y resetea el archivo seleccionado.
+     */
+    function closeSignModal() {
+        if (signModal) signModal.style.display = 'none';
+        currentSignDocId = null;
+    }
+
+    if (closeModalSign) closeModalSign.addEventListener('click', closeSignModal);
+    if (closeModalSignBtn) closeModalSignBtn.addEventListener('click', closeSignModal);
+
+    // Manejar envío de formulario de firma
+    if (signForm) {
+        signForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const p12File = document.getElementById('p12File').files[0];
+            const password = document.getElementById('p12Password').value;
+            const errorEl = document.getElementById('signError');
+
+            const isSimulation = globalSimToggle ? globalSimToggle.checked : true;
+
+            // En simulación solo exigimos la contraseña para la demo
+            if (isSimulation && !password) {
+                if (errorEl) {
+                    errorEl.textContent = 'Por favor ingresa la contraseña (actúa como disparador en la demo)';
+                    errorEl.style.display = 'block';
+                }
+                return;
+            }
+
+            // En modo real exigimos ambos obligatoriamente
+            if (!isSimulation && (!p12File || !password)) {
+                if (errorEl) {
+                    errorEl.textContent = 'Error: Se requiere subir el archivo .p12 y la contraseña en modo real';
+                    errorEl.style.display = 'block';
+                }
+                return;
+            }
+
+            if (!currentSignDocId) return;
+
+            const submitBtn = document.getElementById('confirmSignBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+
+            try {
+                // LLAMADA SIMULADA / REAL (Pasamos el flag de simulación)
+                const result = await signDocumentAPI(currentSignDocId, p12File, password, isSimulation);
+                closeSignModal();
+                showSuccess(isSimulation ? `✅ Firma Simulada con éxito.<br><small>Certificado usado: ROBERTO ALEXIS NEGRETE</small>` : `✅ Documento firmado exitosamente.`);
+                loadHistory();
+            } catch (error) {
+                console.error('Error al firmar:', error);
+                if (errorEl) {
+                    errorEl.textContent = error.message;
+                    errorEl.style.display = 'block';
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    }
+
+
+    /**
+     * Realiza la llamada a la API para firmar o simula el proceso.
+     * @param {number} docId - ID del documento.
+     * @param {File} file - El archivo .p12 subido.
+     * @param {string} password - Contraseña del certificado.
+     */
+    async function signDocumentAPI(docId, file, password, forceSimulation = null) {
+        // Usar flag global o parámetro
+        const IS_SIMULATION = forceSimulation !== null ? forceSimulation : (globalSimToggle ? globalSimToggle.checked : true);
+
+        if (IS_SIMULATION) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    if (password.toLowerCase().includes('error')) {
+                        reject(new Error('Contraseña del certificado incorrecta (Simulación 400 Bad Request)'));
+                    } else {
+                        resolve({ status: 'success', version: 'v1.1-signed' });
+                    }
+                }, 2000);
+            });
+        }
+
+        // --- LÓGICA DE CONEXIÓN REAL ---
+        const formData = new FormData();
+        formData.append('document_id', docId);
+        formData.append('p12_file', file);
+        formData.append('password', password);
+
+        const response = await fetch(`${API_URL}/documents/sign`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${getToken()}` },
+            body: formData // El navegador asigna el Content-Type: multipart/form-data automáticamente
+        });
+
+        // Manejo específico de error 400 (Bad Request - Contraseña incorrecta)
+        if (response.status === 400) {
+            throw new Error('Certificado inválido o contraseña incorrecta (400)');
+        }
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.detail || 'Error al procesar la firma');
+        }
+
+        return await response.json();
+    }
+
+    // ========== FUNCIONALIDAD DE VALIDACIÓN (Subir PDF y ver JSON) ==========
+
+    const validateInput = document.getElementById('validateInput');
+    const selectValidateBtn = document.getElementById('selectValidateBtn');
+    const validationResult = document.getElementById('validationResult');
+
+    const simulateValidateBtn = document.getElementById('simulateValidateBtn');
+
+    if (selectValidateBtn) {
+        selectValidateBtn.onclick = () => validateInput.click();
+    }
+
+    if (simulateValidateBtn) {
+        simulateValidateBtn.onclick = () => performValidation(null, true);
+    }
+
+    if (validateInput) {
+        validateInput.onchange = async function () {
+            if (this.files.length > 0) {
+                await performValidation(this.files[0]);
+            }
+        };
+    }
+
+    /**
+     * Maneja el proceso de validación de un archivo PDF seleccionado.
+     * @param {File} file - El PDF a validar.
+     */
+    async function performValidation(file, forceSimulation = null) {
+        if (!validationResult) return;
+
+        const isSim = forceSimulation !== null ? forceSimulation : (globalSimToggle ? globalSimToggle.checked : (file === null));
+
+        validationResult.style.display = 'block';
+        validationResult.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--itb-secondary);"></i>
+                <p style="margin-top: 10px;">Analizando firmas digitales del PDF...</p>
+            </div>
+        `;
+
+        try {
+            const IS_SIMULATION = isSim;
+            let data;
+
+            if (IS_SIMULATION) {
+                // Simulación de validación
+                data = await new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({
+                            is_valid: true,
+                            signer_name: file ? "ESTUDIANTE ITB - FIRMA ELECTRÓNICA" : "ROBERTO ALEXIS NEGRETE (SIMULACIÓN)",
+                            timestamp: new Date().toISOString(),
+                            trusted: true,
+                            integrity: file ? "Documento no modificado tras la firma" : "Documento íntegro (Simulado)"
+                        });
+                    }, 1500);
+                });
+            } else {
+                // Llamada real al endpoint /validate
+                const formData = new FormData();
+                formData.append('file', file);
+                const response = await fetch(`${API_URL}/documents/validate`, {
+                    method: 'POST',
+                    body: formData
+                });
+                data = await response.json();
+            }
+
+            // Renderizar el resultado en pantalla (Formato JSON y Visual)
+            validationResult.innerHTML = `
+                <div style="border: 1px solid var(--itb-border); border-radius: 8px; padding: 20px; background: #fff;">
+                    <h4 style="color: var(--itb-primary); margin-bottom: 20px; border-bottom: 2px solid var(--itb-light); padding-bottom: 10px;">
+                        <i class="fas fa-clipboard-check"></i> Resultado de la Validación
+                    </h4>
+                    <div style="display: grid; gap: 12px; font-size: 0.95rem;">
+                        <p><strong>Estado de Firma:</strong> ${data.is_valid ? '<span style="color: #27ae60; font-weight: bold;">✅ VÁLIDA</span>' : '<span style="color: #e74c3c; font-weight: bold;">❌ INVÁLIDA</span>'}</p>
+                        <p><strong>Firmante detectado:</strong> ${data.signer_name || 'Desconocido'}</p>
+                        <p><strong>Fecha y Hora:</strong> ${data.timestamp ? new Date(data.timestamp).toLocaleString() : 'N/A'}</p>
+                        <p><strong>Nivel de Seguridad:</strong> ${data.trusted ? 'Certificado de Integridad' : 'Firma no reconocida'}</p>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <p style="font-size: 0.8rem; color: var(--itb-gray); margin-bottom: 5px;">Respuesta JSON del Servidor:</p>
+                        <pre style="background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; font-size: 0.85rem; overflow: auto; max-height: 200px;">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            validationResult.innerHTML = `<div style="color: #e74c3c; padding: 20px; background: #fdf2f2; border-radius: 8px; border: 1px solid #f9d6d6;">
+                <i class="fas fa-times-circle"></i> Error al conectar con el servicio de validación: ${error.message}
+            </div>`;
+        }
     }
 
 
@@ -628,9 +937,6 @@ document.addEventListener('DOMContentLoaded', function () {
         updateFileInfo(file);
         hideMessages();
 
-        // Guardar archivo en el historial de subidas
-        saveFileToHistory(file);
-
         // Actualizar información de formatos
         updateFormatInfo();
     }
@@ -770,15 +1076,35 @@ document.addEventListener('DOMContentLoaded', function () {
         hideMessages();
 
         try {
-            console.log(`[API] Enviando archivo a ${API_URL}/convert`);
-            console.log(`[API] Archivo: ${currentFile.name} (${formatFileSize(currentFile.size)})`);
-
-            // Configurar timeout
+            // Configurar timeout y abort controller
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos
 
-            const response = await fetch(`${API_URL}/convert`, {
+            // Si hay un token pero está expirado, avisar al usuario
+            if (getToken() && isTokenExpired(getToken())) {
+                console.warn('🕒 Sesión expirada detectada al intentar convertir');
+                showError('Tu sesión ha expirado. Por favor, cierra sesión y vuelve a entrar para guardar en tu historial.');
+            }
+
+            // MEJORA: Seleccionar el endpoint dinámicamente. 
+            // Si el usuario está autenticado, usamos /upload para registrar permanentemente en historial/DB.
+            const endpoint = isAuthenticated()
+                ? `${API_URL}/api/v1/files/upload`
+                : `${API_URL}/convert`;
+
+            console.log(`📡 Usando endpoint: ${endpoint} (Autenticado: ${isAuthenticated()})`);
+
+            const headers = {};
+            if (isAuthenticated()) {
+                console.log('🔐 Enviando Token de seguridad para guardar en historial');
+                headers['Authorization'] = `Bearer ${getToken()}`;
+            } else {
+                console.warn('🔓 No hay sesión activa - El documento solo se convertirá pero NO se guardará en DB');
+            }
+
+            const response = await fetch(endpoint, {
                 method: "POST",
+                headers: headers,
                 body: formData,
                 signal: controller.signal
             }).catch(error => {
@@ -829,6 +1155,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Procesar el PDF recibido
             await processConvertedPDF(pdfBlob);
+
+            // Recargar historial inmediatamente tras la conversión exitosa
+            if (isAuthenticated() || getUserData()) {
+                console.log('🔄 Sincronizando historial con la base de datos...');
+                await loadHistory();
+            }
 
         } catch (error) {
             console.error('[ERROR] Error en conversión API:', error);
@@ -898,8 +1230,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Mostrar éxito con información del PDF
-        showSuccess(`✅ ${currentFile.name} convertido exitosamente a PDF<br>
-                    <small>Tamaño: ${formatFileSize(pdfBlob.size)} • Listo para descargar</small>`);
+        const successMsg = isAuthenticated()
+            ? `✅ ${pdfFilename} guardado en tu historial y listo para descargar`
+            : `✅ ${currentFile.name} convertido exitosamente a PDF<br>
+               <small>Tamaño: ${formatFileSize(pdfBlob.size)} • Listo para descargar</small>`;
+
+        showSuccess(successMsg);
 
         // Limpiar URL después de 1 hora para liberar memoria
         setTimeout(() => {
@@ -1026,24 +1362,40 @@ document.addEventListener('DOMContentLoaded', function () {
             const url = window.URL.createObjectURL(blob);
 
             // Extraer nombre del header si es posible
-            // Extraer nombre del header si es posible
             const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = 'documento'; // Default sin extensión
+            console.log('📥 Headers disponibles:', [...response.headers.entries()]);
+            console.log('📥 Content-Disposition:', contentDisposition);
+
+            let filename = 'documento.pdf'; // Default
 
             if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = filenameMatch[1];
+                // Intentar diferentes formatos de filename
+                // 1. filename*=UTF-8''filename.ext (Codificado)
+                const filenameStarMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+                // 2. filename="filename.ext" (Entre comillas)
+                const filenameQuoteMatch = contentDisposition.match(/filename="([^"]+)"/i);
+                // 3. filename=filename.ext (Sin comillas)
+                const filenameSimpleMatch = contentDisposition.match(/filename=([^; ]+)/i);
+
+                if (filenameStarMatch && filenameStarMatch[1]) {
+                    filename = decodeURIComponent(filenameStarMatch[1]);
+                } else if (filenameQuoteMatch && filenameQuoteMatch[1]) {
+                    filename = filenameQuoteMatch[1];
+                } else if (filenameSimpleMatch && filenameSimpleMatch[1]) {
+                    filename = filenameSimpleMatch[1];
                 }
             } else {
                 console.warn('⚠️ No Content-Disposition header found, falling back to default name.');
                 // Intentar derivar extensión del content-type
                 const contentType = response.headers.get('content-type');
-                if (contentType === 'application/pdf') filename += '.pdf';
-                else if (contentType.includes('word')) filename += '.docx';
-                else if (contentType.includes('sheet')) filename += '.xlsx';
-                else if (contentType.includes('presentation')) filename += '.pptx';
+                if (contentType) {
+                    if (contentType.includes('word')) filename = 'documento.docx';
+                    else if (contentType.includes('sheet')) filename = 'documento.xlsx';
+                    else if (contentType.includes('presentation')) filename = 'documento.pptx';
+                }
             }
+
+            console.log('📝 Nombre final del archivo a descargar:', filename);
 
             downloadPDF(url, filename);
             showSuccess('Descargando archivo desde el servidor...');

@@ -26,3 +26,6 @@ pandas>=2.0.0
 openpyxl>=3.1.0
 python-pptx>=0.6.0
 pyHanko[crypto]>=0.20.0
+PyMuPDF>=1.23.0  # Para anotaciones en PDFs
+fastapi-mail>=1.4.0  # Para envío de correos
+jinja2>=3.1.0  # Templates para correos

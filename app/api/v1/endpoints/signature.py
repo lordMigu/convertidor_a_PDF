@@ -6,6 +6,7 @@ import os
 import shutil
 import uuid
 import asyncio
+import tempfile
 from pathlib import Path
 from typing import Optional, List
 from datetime import datetime
@@ -50,25 +51,41 @@ def _sign_pdf_task(
     Función síncrona para firmar el PDF que será ejecutada en un threadpool.
     Utiliza pyhanko para realizar la firma.
     """
+    # Crear archivo temporal para el certificado
+    
+    # Usar un archivo temporal seguro que se cierra automáticamente
+    # pero persistente (delete=False) para que pyHanko pueda abrirlo por path
+    tmp_p12_path = None # Initialize to None
     try:
-        # Cargar firmante desde P12/PFX bytes
-        # pyHanko P12Signer maneja la carga del certificado y la clave privada
-        signer = signers.P12Signer(
-            pfx_pkcs12=p12_bytes,
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".p12") as tmp_p12:
+            tmp_p12.write(p12_bytes)
+            tmp_p12_path = tmp_p12.name
+
+        # DEBUG: Inspeccionar qué es SigSeedSubFilter eliminados para limpieza
+        
+        # Cargar firmante usando el PATH del archivo temporal
+        signer = signers.SimpleSigner.load_pkcs12(
+            pfx_file=tmp_p12_path,
             passphrase=password.encode() if password else None
         )
     except Exception as e:
         # Manejo de error específico si la contraseña es incorrecta o el archivo está dañado
         raise ValueError(f"Error al cargar certificado (posible contraseña incorrecta): {e}")
+    finally:
+        # Asegurar limpieza del archivo temporal
+        if tmp_p12_path and os.path.exists(tmp_p12_path):
+            try:
+                os.unlink(tmp_p12_path)
+            except Exception as e:
+                print(f"WARNING: No se pudo eliminar el archivo temporal {tmp_p12_path}: {e}")
 
     with open(input_pdf_path, 'rb') as inf:
-        w = IncrementalPdfFileWriter(inf)
-        
-        # Crear campo de firma si no existe
-        # location y reason son metadatos opcionales pero recomendados
-        fields.append_signature_field(
-            w, SigSeedSubFilter(flags=fields.SigFlags.SIG_EXISTING, reason="Firma Digital", location="ITB")
-        )
+        # strict=False es necesario para soportar PDFs generados por herramientas comunes (LibreOffice, etc)
+        # que usan tablas XRef híbridas.
+        w = IncrementalPdfFileWriter(inf, strict=False)
+
+        # No llamamos a append_signature_field manualmente porque SigSeedSubFilter está dando problemas.
+        # Dejamos que signers.sign_pdf intente manejarlo o que falle si no existe el campo.
         
         # Realizar la firma en un nuevo documento
         with open(output_pdf_path, 'wb') as outf:
@@ -139,9 +156,11 @@ async def sign_document(
             password
         )
     except ValueError as e:
+        print(f"ERROR ValueError en pyHanko: {e}")
         # Capturar error de contraseña y devolver 400 Bad Request
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=f"Error validando certificado o contraseña: {str(e)}")
     except Exception as e:
+        print(f"ERROR Exception general en firma: {e}")
         # Limpiar archivo si falló
         if output_path.exists():
             output_path.unlink()

@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # Seguridad - JWT
     secret_key: str = "tu-clave-secreta-super-segura-cambiar-en-produccion-32-caracteres-minimo"
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 10
+    access_token_expire_minutes: int = 30 # 30 minutos
     
     # CORS (para frontend)
     allowed_origins: list[str] = [
@@ -36,6 +36,18 @@ class Settings(BaseSettings):
     
     # Directorio de subidas
     upload_dir: str = "uploads"
+    
+    # Configuración de correo electrónico (FastAPI-Mail)
+    mail_username: str = ""
+    mail_password: str = ""
+    mail_from: str = ""
+    mail_port: int = 587
+    mail_server: str = "smtp.gmail.com"
+    mail_from_name: str = "Sistema AntiGravity"
+    mail_starttls: bool = True
+    mail_ssl_tls: bool = False
+    mail_use_credentials: bool = True
+    mail_validate_certs: bool = True
     
     model_config = {
         "env_file": ".env",
