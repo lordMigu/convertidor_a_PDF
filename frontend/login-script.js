@@ -10,7 +10,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Elementos del DOM
     const loginForm = document.getElementById('loginForm');
+<<<<<<< HEAD
     if (!loginForm) return;
+=======
+    const recoveryForm = document.getElementById('recoveryForm');
+    if (!loginForm || !recoveryForm) return;
+
+    const loginView = document.getElementById('loginView');
+    const recoveryView = document.getElementById('recoveryView');
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    const backToLoginBtn = document.getElementById('backToLoginBtn');
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
 
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -102,12 +112,93 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+<<<<<<< HEAD
     // Manejar envío del formulario
+=======
+    // Manejar envío del formulario de Login
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     loginForm.addEventListener('submit', function (e) {
         e.preventDefault();
         realLogin();
     });
 
+<<<<<<< HEAD
+=======
+    // --- LÓGICA DE RECUPERACIÓN / RESTABLECIMIENTO (FRONTEND) ---
+    // Esta sección maneja el intercambio de vistas y la simulación del cambio de clave.
+
+    // Cambiar a vista de recuperación
+    if (forgotPasswordBtn) {
+        forgotPasswordBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            loginView.style.display = 'none';
+            recoveryView.style.display = 'block';
+            // Limpiar errores previos
+            document.getElementById('recoveryEmailError').textContent = '';
+        });
+    }
+
+    // Volver a vista de login
+    if (backToLoginBtn) {
+        backToLoginBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            recoveryView.style.display = 'none';
+            loginView.style.display = 'block';
+        });
+    }
+
+    // Manejar envío de recuperación (RESTABLECIMIENTO DIRECTO)
+    recoveryForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const email = document.getElementById('recoveryEmail').value.trim();
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const recoveryBtn = document.getElementById('recoveryBtn');
+        const recoveryError = document.getElementById('recoveryError');
+
+        // Validar email ITB
+        if (!isValidITBEmail(email)) {
+            recoveryError.textContent = 'Debes usar un correo institucional ITB (@itb.edu.ec)';
+            return;
+        }
+
+        // Validar que las contraseñas coincidan
+        if (newPassword !== confirmPassword) {
+            recoveryError.textContent = 'Las contraseñas no coinciden';
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            recoveryError.textContent = 'La contraseña debe tener al menos 6 caracteres';
+            return;
+        }
+
+        recoveryError.textContent = '';
+        recoveryBtn.disabled = true;
+        const originalText = recoveryBtn.innerHTML;
+        recoveryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+
+        // Simular llamada a API (Simulación de tiempo de red)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Mostrar éxito en el formulario (Sin recargar página)
+        recoveryView.innerHTML = `
+            <div style="text-align: center; padding: 30px 10px;">
+                <i class="fas fa-check-circle" style="font-size: 60px; color: var(--itb-success); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--itb-primary); margin-bottom: 15px;">¡Contraseña Actualizada!</h3>
+                <p style="font-size: 0.9rem; color: var(--itb-gray); line-height: 1.5;">
+                    Tu contraseña ha sido cambiada con éxito. Ya puedes iniciar sesión con tu nueva clave.
+                </p>
+                <div style="margin-top: 30px;">
+                    <button class="btn btn-sm" onclick="location.reload()" style="background: var(--itb-primary); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                        Ir al Login
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     // Permitir Enter para enviar
     if (passwordInput) {
         passwordInput.addEventListener('keypress', function (e) {

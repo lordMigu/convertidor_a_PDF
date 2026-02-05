@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+<<<<<<< HEAD
     // ========== GESTIÓN DE MODO SIMULACIÓN (GLOBAL) ==========
     const globalSimToggle = document.getElementById('globalSimToggle');
 
@@ -120,6 +121,8 @@ document.addEventListener('DOMContentLoaded', function () {
         globalSimToggle.addEventListener('change', updateSimulationUI);
         updateSimulationUI(); // Estado inicial
     }
+=======
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
 
     // Mostrar sección de subir archivo
     function showUploadSection() {
@@ -375,6 +378,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const sharedBadge = isShared ?
             '<span class="badge" style="background: #e67e22; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: normal; display: inline-block; line-height: 1;">Compartido</span>' : '';
 
+<<<<<<< HEAD
+=======
+        // Badge "Externo" con el sobre ✉️
+        const externalBadge = doc.shared_externally ?
+            '<span class="badge" title="Enviado por correo externo" style="background: #27ae60; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: normal; display: inline-block; line-height: 1;">✉️</span>' : '';
+
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
         const roleLabel = isOwner ? 'Propietario' : (permission === 'editor' ? 'Editor' : 'Lector');
 
         // Obtener información del archivo
@@ -387,7 +397,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     <i class="fas ${iconClass} history-file-icon" style="color: ${getFileIconColor(fileExt)}"></i>
                     <div class="history-file-details">
                         <h4 style="margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
+<<<<<<< HEAD
                             ${doc.name} ${versionBadge} ${sharedBadge}
+=======
+                            ${doc.name} ${versionBadge} ${sharedBadge} ${externalBadge}
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                         </h4>
                         <div class="history-file-meta">
                             <span><i class="fas fa-calendar-alt"></i> ${uploadDate}</span>
@@ -403,10 +417,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${fileExt.toLowerCase() === 'pdf' ?
                 `<button class="btn-secondary sign-doc-btn" data-id="${doc.id}" data-name="${doc.name}" title="Firmar">
                             <i class="fas fa-pen-nib"></i>
+<<<<<<< HEAD
                         </button>` : ''}
                     ${isOwner ?
                 `<button class="btn-secondary share-doc-btn" data-id="${doc.id}" data-name="${doc.name}" title="Compartir">
                             <i class="fas fa-user-plus"></i>
+=======
+                        </button>
+                        <button class="btn-secondary annotate-doc-btn" data-version-id="${v ? v.id : ''}" data-name="${doc.name}" title="Anotar">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>` : ''}
+                    ${isOwner ?
+                `<button class="btn-secondary share-doc-btn" data-id="${doc.id}" data-version-id="${v ? v.id : ''}" data-name="${doc.name}" title="Enviar por Correo">
+                            <i class="fas fa-paper-plane"></i>
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                         </button>` : ''}
                     <button class="btn-secondary upload-version-btn" data-id="${doc.id}" title="Nueva Versión" 
                             style="${canUpdate ? '' : 'display: none;'}">
@@ -458,7 +482,12 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.onclick = function () {
                 const docId = this.getAttribute('data-id');
                 const docName = this.getAttribute('data-name');
+<<<<<<< HEAD
                 openShareModal(docId, docName);
+=======
+                const versionId = this.getAttribute('data-version-id');
+                openShareModal(docId, docName, versionId);
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
             };
         });
 
@@ -470,6 +499,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 openSignModal(docId, docName);
             };
         });
+<<<<<<< HEAD
+=======
+
+        // Evento para Anotar
+        document.querySelectorAll('.annotate-doc-btn').forEach(btn => {
+            btn.onclick = function () {
+                const versionId = this.getAttribute('data-version-id');
+                const docName = this.getAttribute('data-name');
+                openAnnotateModal(versionId, docName);
+            };
+        });
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     }
 
     // ========== FUNCIONALIDAD DE FIRMA DIGITAL (Simulación Integrada) ==========
@@ -527,6 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const password = document.getElementById('p12Password').value;
             const errorEl = document.getElementById('signError');
 
+<<<<<<< HEAD
             const isSimulation = globalSimToggle ? globalSimToggle.checked : true;
 
             // En simulación solo exigimos la contraseña para la demo
@@ -542,6 +584,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!isSimulation && (!p12File || !password)) {
                 if (errorEl) {
                     errorEl.textContent = 'Error: Se requiere subir el archivo .p12 y la contraseña en modo real';
+=======
+            if (!p12File || !password) {
+                if (errorEl) {
+                    errorEl.textContent = 'Error: Se requiere subir el archivo .p12 y la contraseña';
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                     errorEl.style.display = 'block';
                 }
                 return;
@@ -555,10 +602,17 @@ document.addEventListener('DOMContentLoaded', function () {
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
 
             try {
+<<<<<<< HEAD
                 // LLAMADA SIMULADA / REAL (Pasamos el flag de simulación)
                 const result = await signDocumentAPI(currentSignDocId, p12File, password, isSimulation);
                 closeSignModal();
                 showSuccess(isSimulation ? `✅ Firma Simulada con éxito.<br><small>Certificado usado: ROBERTO ALEXIS NEGRETE</small>` : `✅ Documento firmado exitosamente.`);
+=======
+                // LLAMADA A API REAL (Se eliminó el modo simulación)
+                const result = await signDocumentAPI(currentSignDocId, p12File, password);
+                closeSignModal();
+                showSuccess(`✅ Documento firmado exitosamente.`);
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                 loadHistory();
             } catch (error) {
                 console.error('Error al firmar:', error);
@@ -580,6 +634,7 @@ document.addEventListener('DOMContentLoaded', function () {
      * @param {File} file - El archivo .p12 subido.
      * @param {string} password - Contraseña del certificado.
      */
+<<<<<<< HEAD
     async function signDocumentAPI(docId, file, password, forceSimulation = null) {
         // Usar flag global o parámetro
         const IS_SIMULATION = forceSimulation !== null ? forceSimulation : (globalSimToggle ? globalSimToggle.checked : true);
@@ -597,6 +652,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // --- LÓGICA DE CONEXIÓN REAL ---
+=======
+    async function signDocumentAPI(docId, file, password) {
+        // --- LÓGICA DE CONEXIÓN REAL CON EL BACKEND ---
+        // Se envía el archivo .p12 y la contraseña mediante FormData.
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
         const formData = new FormData();
         formData.append('document_id', docId);
         formData.append('p12_file', file);
@@ -621,22 +681,309 @@ document.addEventListener('DOMContentLoaded', function () {
         return await response.json();
     }
 
+<<<<<<< HEAD
+=======
+    // ========== FUNCIONALIDAD DE ANOTACIONES (Semana 6) ==========
+
+    // PDF.js worker setup
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+    const annotateModal = document.getElementById('annotateModal');
+    const pdfCanvas = document.getElementById('pdfCanvas');
+    const pdfCtx = pdfCanvas.getContext('2d');
+    const annotationsOverlay = document.getElementById('annotationsOverlay');
+    const floatingNoteForm = document.getElementById('floatingNoteForm');
+    const noteText = document.getElementById('noteText');
+    const currentAnnotatePageSpan = document.getElementById('currentAnnotatePage');
+    const totalAnnotatePagesSpan = document.getElementById('totalAnnotatePages');
+
+    let annotateState = {
+        pdfDoc: null,
+        pageNum: 1,
+        scale: 1.5,
+        versionId: null,
+        annotations: [], // Lista de anotaciones para el backend
+        currentClick: null, // {x, y} en display pixels
+        annotatedVersionId: null
+    };
+
+    /**
+     * Abre el visor de anotaciones para un PDF seleccionado.
+     */
+    async function openAnnotateModal(versionId, fileName) {
+        if (!versionId) return;
+        annotateState.versionId = versionId;
+        annotateState.annotations = [];
+        annotateState.pageNum = 1;
+        annotationsOverlay.innerHTML = '';
+        document.getElementById('annotateFileName').textContent = fileName;
+
+        if (annotateModal) annotateModal.style.display = 'block';
+
+
+        try {
+            const url = `${API_URL}/api/v1/files/download/${versionId}`;
+            const loadingTask = pdfjsLib.getDocument({
+                url: url,
+                httpHeaders: { 'Authorization': `Bearer ${getToken()}` }
+            });
+
+            annotateState.pdfDoc = await loadingTask.promise;
+            totalAnnotatePagesSpan.textContent = annotateState.pdfDoc.numPages;
+            await renderAnnotatePage(annotateState.pageNum);
+        } catch (error) {
+            console.error('Error al cargar PDF:', error);
+            showError('No se pudo cargar la previsualización del PDF.');
+            closeAnnotateModal();
+        }
+    }
+
+    async function renderAnnotatePage(num) {
+        if (!annotateState.pdfDoc) return;
+
+        const page = await annotateState.pdfDoc.getPage(num);
+        const viewport = page.getViewport({ scale: annotateState.scale });
+
+        pdfCanvas.height = viewport.height;
+        pdfCanvas.width = viewport.width;
+
+        const renderContext = {
+            canvasContext: pdfCtx,
+            viewport: viewport
+        };
+
+        await page.render(renderContext).promise;
+        currentAnnotatePageSpan.textContent = num;
+
+        // Redibujar marcas visuales de esta página (si las hay)
+        updateVisibleMarkers();
+    }
+
+    function updateVisibleMarkers() {
+        annotationsOverlay.innerHTML = '';
+        annotateState.annotations.forEach((ann, index) => {
+            if (ann.page === annotateState.pageNum - 1) {
+                renderVisualMarker(ann.uiX, ann.uiY, index + 1, ann.text);
+            }
+        });
+    }
+
+    function renderVisualMarker(x, y, number, text) {
+        const markerContainer = document.createElement('div');
+        markerContainer.className = 'annotation-container';
+        markerContainer.style.position = 'absolute';
+        markerContainer.style.left = `${x}px`;
+        markerContainer.style.top = `${y}px`;
+        markerContainer.style.zIndex = '100';
+        markerContainer.style.pointerEvents = 'auto'; // Habilitar clics/hover en el marcador
+
+        const marker = document.createElement('div');
+        marker.className = 'annotation-marker';
+        marker.style.width = '24px';
+        marker.style.height = '24px';
+        marker.style.background = 'var(--itb-secondary)';
+        marker.style.color = 'white';
+        marker.style.borderRadius = '50% 50% 50% 0';
+        marker.style.display = 'flex';
+        marker.style.alignItems = 'center';
+        marker.style.justifyContent = 'center';
+        marker.style.fontSize = '10px';
+        marker.style.fontWeight = 'bold';
+        marker.style.transform = 'translate(-50%, -100%)';
+        marker.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+        marker.style.cursor = 'pointer';
+        marker.innerText = number;
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'annotation-tooltip';
+        tooltip.innerText = text;
+        tooltip.style.position = 'absolute';
+        tooltip.style.bottom = '30px';
+        tooltip.style.left = '50%';
+        tooltip.style.transform = 'translateX(-50%)';
+        tooltip.style.background = 'rgba(44, 62, 80, 0.95)';
+        tooltip.style.color = 'white';
+        tooltip.style.padding = '8px 12px';
+        tooltip.style.borderRadius = '6px';
+        tooltip.style.fontSize = '12px';
+        tooltip.style.whiteSpace = 'normal';
+        tooltip.style.width = 'max-content';
+        tooltip.style.maxWidth = '200px';
+        tooltip.style.boxShadow = '0 5px 15px rgba(0,0,0,0.3)';
+        tooltip.style.pointerEvents = 'none';
+        tooltip.style.opacity = '0';
+        tooltip.style.visibility = 'hidden';
+        tooltip.style.transition = 'opacity 0.2s, transform 0.2s, visibility 0.2s';
+        tooltip.style.zIndex = '101';
+
+        markerContainer.appendChild(marker);
+        markerContainer.appendChild(tooltip);
+
+        // Mostrar tooltip al pasar el cursor
+        markerContainer.onmouseenter = () => {
+            tooltip.style.visibility = 'visible';
+            tooltip.style.opacity = '1';
+            tooltip.style.transform = 'translateX(-50%) translateY(-5px)';
+        };
+        markerContainer.onmouseleave = () => {
+            tooltip.style.opacity = '0';
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.transform = 'translateX(-50%)';
+        };
+
+        annotationsOverlay.appendChild(markerContainer);
+    }
+
+    function handleCanvasClick(e) {
+        const rect = pdfCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        annotateState.currentClick = { x, y };
+
+        // Posicionar formulario flotante
+        floatingNoteForm.style.left = `${x}px`;
+        floatingNoteForm.style.top = `${y}px`;
+        floatingNoteForm.style.display = 'block';
+        noteText.value = '';
+        noteText.focus();
+    }
+
+    async function saveNote() {
+        const text = noteText.value.trim();
+        if (!text) {
+            hideNoteForm();
+            return;
+        }
+
+        // --- CÁLCULO DE ESCALADO ---
+        const page = await annotateState.pdfDoc.getPage(annotateState.pageNum);
+        const viewport = page.getViewport({ scale: 1.0 }); // Escala natural del PDF
+
+        const scaleX = viewport.width / pdfCanvas.width;
+        const scaleY = viewport.height / pdfCanvas.height;
+
+        const ann = {
+            x: annotateState.currentClick.x * scaleX,
+            y: viewport.height - (annotateState.currentClick.y * scaleY), // Coordenadas PDF (abajo a arriba)
+            text: text,
+            type: 'note',
+            page: annotateState.pageNum - 1,
+            uiX: annotateState.currentClick.x,
+            uiY: annotateState.currentClick.y
+        };
+
+        annotateState.annotations.push(ann);
+        updateVisibleMarkers();
+        hideNoteForm();
+    }
+
+    function hideNoteForm() {
+        floatingNoteForm.style.display = 'none';
+        noteText.value = '';
+    }
+
+    async function submitAnnotations() {
+        if (annotateState.annotations.length === 0) {
+            showError('Añade al menos una anotación antes de guardar.');
+            return;
+        }
+
+        const submitBtn = document.getElementById('saveAndSendAnnotateBtn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+
+        try {
+            const payload = {
+                file_id: parseInt(annotateState.versionId),
+                annotations: annotateState.annotations.map(({ x, y, text, type, page }) => ({ x, y, text, type, page }))
+            };
+
+            const response = await fetch(`${API_URL}/api/v1/annotations/annotate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                annotateState.annotatedVersionId = data.annotated_version_id;
+                closeAnnotateModal();
+                showSuccess('Anotaciones guardadas correctamente');
+                loadHistory(); // Recargar historial para ver la nueva versión
+            } else {
+                throw new Error(data.detail || 'Error al guardar anotaciones');
+            }
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    }
+
+    // --- Navegación de páginas ---
+    document.getElementById('prevPageBtn').onclick = () => {
+        if (annotateState.pageNum <= 1) return;
+        annotateState.pageNum--;
+        renderAnnotatePage(annotateState.pageNum);
+    };
+
+    document.getElementById('nextPageBtn').onclick = () => {
+        if (annotateState.pageNum >= annotateState.pdfDoc.numPages) return;
+        annotateState.pageNum++;
+        renderAnnotatePage(annotateState.pageNum);
+    };
+
+    // --- Cierre de modales ---
+    function closeAnnotateModal() {
+        if (annotateModal) annotateModal.style.display = 'none';
+        hideNoteForm();
+        if (annotateState.pdfDoc) {
+            annotateState.pdfDoc.destroy();
+            annotateState.pdfDoc = null;
+        }
+    }
+
+    document.querySelector('.close-modal-annotate').onclick = closeAnnotateModal;
+    document.querySelector('.close-modal-annotate-btn').onclick = closeAnnotateModal;
+
+
+    // Eventos de anotación
+    document.getElementById('pdfCanvasWrapper').onclick = handleCanvasClick;
+    document.getElementById('saveNote').onclick = saveNote;
+    document.getElementById('cancelNote').onclick = hideNoteForm;
+    document.getElementById('saveAndSendAnnotateBtn').onclick = submitAnnotations;
+
+
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     // ========== FUNCIONALIDAD DE VALIDACIÓN (Subir PDF y ver JSON) ==========
 
     const validateInput = document.getElementById('validateInput');
     const selectValidateBtn = document.getElementById('selectValidateBtn');
     const validationResult = document.getElementById('validationResult');
 
+<<<<<<< HEAD
     const simulateValidateBtn = document.getElementById('simulateValidateBtn');
 
+=======
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     if (selectValidateBtn) {
         selectValidateBtn.onclick = () => validateInput.click();
     }
 
+<<<<<<< HEAD
     if (simulateValidateBtn) {
         simulateValidateBtn.onclick = () => performValidation(null, true);
     }
 
+=======
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     if (validateInput) {
         validateInput.onchange = async function () {
             if (this.files.length > 0) {
@@ -649,10 +996,15 @@ document.addEventListener('DOMContentLoaded', function () {
      * Maneja el proceso de validación de un archivo PDF seleccionado.
      * @param {File} file - El PDF a validar.
      */
+<<<<<<< HEAD
     async function performValidation(file, forceSimulation = null) {
         if (!validationResult) return;
 
         const isSim = forceSimulation !== null ? forceSimulation : (globalSimToggle ? globalSimToggle.checked : (file === null));
+=======
+    async function performValidation(file) {
+        if (!validationResult || !file) return;
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
 
         validationResult.style.display = 'block';
         validationResult.innerHTML = `
@@ -663,6 +1015,7 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
 
         try {
+<<<<<<< HEAD
             const IS_SIMULATION = isSim;
             let data;
 
@@ -689,6 +1042,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 data = await response.json();
             }
+=======
+            let data;
+
+            // Llamada real al endpoint /validate del servidor FastAPI
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetch(`${API_URL}/documents/validate`, {
+                method: 'POST',
+                body: formData
+            });
+            data = await response.json();
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
 
             // Renderizar el resultado en pantalla (Formato JSON y Visual)
             validationResult.innerHTML = `
@@ -1536,16 +1901,32 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeModal = document.querySelector('.close-modal');
     const closeModalBtn = document.querySelector('.close-modal-btn');
     let currentShareDocId = null;
+<<<<<<< HEAD
 
     // Función para abrir modal
     function openShareModal(docId, docName) {
         currentShareDocId = docId;
+=======
+    let currentShareVersionId = null;
+
+    // Función para abrir modal
+    function openShareModal(docId, docName, versionId) {
+        currentShareDocId = docId;
+        currentShareVersionId = versionId;
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
         const nameEl = document.getElementById('shareFileName');
         if (nameEl) nameEl.textContent = docName;
 
         const emailInput = document.getElementById('shareEmail');
         if (emailInput) emailInput.value = '';
 
+<<<<<<< HEAD
+=======
+        if (document.getElementById('shareSubject')) {
+            document.getElementById('shareSubject').value = `Documento compartido: ${docName}`;
+        }
+
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
         const levelSelect = document.getElementById('shareLevel');
         if (levelSelect) levelSelect.value = 'viewer';
 
@@ -1563,6 +1944,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function closeShareModal() {
         if (shareModal) shareModal.style.display = 'none';
         currentShareDocId = null;
+<<<<<<< HEAD
+=======
+        currentShareVersionId = null;
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     }
 
     if (closeModal) closeModal.addEventListener('click', closeShareModal);
@@ -1577,6 +1962,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Manejar envío formulario compartir
     if (shareForm) {
+<<<<<<< HEAD
         shareForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -1585,6 +1971,23 @@ document.addEventListener('DOMContentLoaded', function () {
             const errorEl = document.getElementById('shareError');
 
             if (!email || !currentShareDocId) return;
+=======
+        shareForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const email = document.getElementById('shareEmail').value;
+            const subject = document.getElementById('shareSubject').value;
+            const level = document.getElementById('shareLevel').value;
+            const errorEl = document.getElementById('shareError');
+
+            if (!email || !currentShareDocId || !currentShareVersionId) {
+                if (errorEl) {
+                    errorEl.textContent = 'Error: Información del documento incompleta.';
+                    errorEl.style.display = 'block';
+                }
+                return;
+            }
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
 
             // Limpiar error previo
             if (errorEl) {
@@ -1592,6 +1995,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 errorEl.textContent = '';
             }
 
+<<<<<<< HEAD
             // Validar dominio
             if (!email.toLowerCase().endsWith('@itb.edu.ec')) {
                 if (errorEl) {
@@ -1599,6 +2003,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     errorEl.style.display = 'block';
                 } else {
                     alert('Correo inválido: debe ser @itb.edu.ec'); // Fallback
+=======
+            // Validar dominio si se elige asignar permisos
+            if (level !== 'none' && !email.toLowerCase().endsWith('@itb.edu.ec')) {
+                if (errorEl) {
+                    errorEl.textContent = 'Correo inválido: debe ser @itb.edu.ec para asignar permisos.';
+                    errorEl.style.display = 'block';
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                 }
                 return;
             }
@@ -1606,6 +2017,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
+<<<<<<< HEAD
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Compartiendo...';
 
             try {
@@ -1623,6 +2035,64 @@ document.addEventListener('DOMContentLoaded', function () {
                     errorEl.style.display = 'block';
                 } else {
                     alert(error.message || 'Error al compartir el documento');
+=======
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+
+            try {
+                // 1. Asignar permiso en el sistema (solo si no es 'none')
+                if (level !== 'none') {
+                    const shareResponse = await fetch(`${API_URL}/api/v1/files/${currentShareDocId}/share`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${getToken()}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            permission_level: level
+                        })
+                    });
+
+                    if (shareResponse.status === 401) { logout(); return; }
+
+                    if (!shareResponse.ok) {
+                        const errorData = await shareResponse.json();
+                        throw new Error(errorData.detail || 'Error al asignar permisos en el sistema');
+                    }
+                }
+
+                // 2. Enviar el correo con el adjunto
+                const emailResponse = await fetch(`${API_URL}/api/v1/annotations/send-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        recipient: email,
+                        subject: subject,
+                        file_version_id: parseInt(currentShareVersionId)
+                    })
+                });
+
+                if (emailResponse.status === 401) { logout(); return; }
+
+                if (!emailResponse.ok) {
+                    const errorData = await emailResponse.json();
+                    // Mostramos advertencia pero el permiso ya se dio
+                    console.warn('Permisos asignados pero no se pudo enviar el correo:', errorData.detail);
+                }
+
+                showSuccess(`Documento enviado a <b>${email}</b> correctamente.`);
+                // Resetear solo el email para permitir otro envío rápido
+                document.getElementById('shareEmail').value = '';
+                loadHistory(); // Recargar historial para mostrar los nuevos badges inmediatamente
+            } catch (error) {
+                console.error('Error en proceso de compartir:', error);
+                if (errorEl) {
+                    errorEl.textContent = error.message;
+                    errorEl.style.display = 'block';
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                 }
             } finally {
                 submitBtn.disabled = false;
@@ -1631,6 +2101,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+<<<<<<< HEAD
     // API Call para compartir
     async function shareDocument(docId, email, level) {
         try {
@@ -1665,6 +2136,9 @@ document.addEventListener('DOMContentLoaded', function () {
             throw error;
         }
     }
+=======
+
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
 
     // Inicializar la aplicación
     showUploadSection();

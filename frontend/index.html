@@ -9,7 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+<<<<<<< HEAD
     <!-- Biblioteca para leer archivos DOCX -->
+=======
+    <!-- Biblioteca para trabajar con PDFs (Anotaciones) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     <script src="https://unpkg.com/mammoth@1.4.8/mammoth.browser.min.js"></script>
     <!-- NOTA: NO cargar login-styles.css aquí -->
     <link rel="shortcut icon" type="image/x-icon"
@@ -92,6 +97,7 @@
 
             </div>
 
+<<<<<<< HEAD
             <!-- Simulation Toggle (Demo Mode) -->
             <div class="sim-toggle-container">
                 <span class="sim-label"><i class="fas fa-flask"></i> MODO DEMO (Simulación)</span>
@@ -100,6 +106,9 @@
                     <span class="sim-slider"></span>
                 </label>
             </div>
+=======
+            <!-- Upload section -->
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
 
             <!-- Upload section -->
             <section class="upload-section" id="uploadSection">
@@ -201,6 +210,7 @@
                         </button>
                         <input type="file" class="file-input" id="validateInput" accept=".pdf">
                     </div>
+<<<<<<< HEAD
 
                     <div id="validateSimInput" style="margin-top: 20px; display: block;">
                         <div class="sim-info-box">
@@ -214,6 +224,8 @@
                             <i class="fas fa-play"></i> Validar Documento de Prueba
                         </button>
                     </div>
+=======
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                 </div>
 
                 <div id="validationResult" class="history-files"
@@ -318,14 +330,22 @@
             <div class="modal-body">
                 <p id="signFileName" class="share-file-name">Documento.pdf</p>
                 <form id="signForm">
+<<<<<<< HEAD
                     <div id="signRealInputs" style="display: none;">
                         <div class="form-group">
                             <label for="p12File">Certificado Digital (.p12, .pfx):</label>
                             <input type="file" id="p12File" class="form-control" accept=".p12,.pfx">
+=======
+                    <div id="signRealInputs">
+                        <div class="form-group">
+                            <label for="p12File">Certificado Digital (.p12, .pfx):</label>
+                            <input type="file" id="p12File" class="form-control" accept=".p12,.pfx" required>
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                             <small style="color: var(--itb-gray);">Sube tu archivo de firma electrónica.</small>
                         </div>
                     </div>
 
+<<<<<<< HEAD
                     <div id="signSimInputs" style="display: block;">
                         <div class="sim-info-box">
                             <i class="fas fa-id-card sim-info-icon"></i>
@@ -337,6 +357,8 @@
                         </div>
                     </div>
 
+=======
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                     <div class="form-group">
                         <label for="p12Password">Contraseña del certificado:</label>
                         <input type="password" id="p12Password" class="form-control"
@@ -361,22 +383,42 @@
     <div id="shareModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
+<<<<<<< HEAD
                 <h3><i class="fas fa-user-plus"></i> Compartir Documento</h3>
+=======
+                <h3><i class="fas fa-envelope"></i> Compartir por Correo</h3>
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                 <span class="close-modal">&times;</span>
             </div>
             <div class="modal-body">
                 <p id="shareFileName" class="share-file-name">Documento.docx</p>
                 <form id="shareForm">
                     <div class="form-group">
+<<<<<<< HEAD
                         <label for="shareEmail">Correo electrónico del usuario:</label>
+=======
+                        <label for="shareEmail">Correo del destinatario:</label>
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                         <input type="email" id="shareEmail" class="form-control" placeholder="usuario@itb.edu.ec"
                             required>
                     </div>
                     <div class="form-group">
+<<<<<<< HEAD
                         <label for="shareLevel">Permiso:</label>
                         <select id="shareLevel" class="form-control">
                             <option value="viewer">Lector (Solo ver)</option>
                             <option value="editor">Editor (Puede eliminar/actualizar)</option>
+=======
+                        <label for="shareSubject">Asunto:</label>
+                        <input type="text" id="shareSubject" class="form-control" value="Documento compartido" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shareLevel">Permiso en el sistema:</label>
+                        <select id="shareLevel" class="form-control">
+                            <option value="viewer">Lector (Solo ver)</option>
+                            <option value="editor">Editor (Puede eliminar/actualizar)</option>
+                            <option value="none">- (Solo enviar por correo)</option>
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                         </select>
                     </div>
 
@@ -391,6 +433,72 @@
         </div>
     </div>
 
+<<<<<<< HEAD
+=======
+    <!-- Annotate Modal -->
+    <div id="annotateModal" class="modal">
+        <div class="modal-content" style="max-width: 90%; width: 1000px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-pencil-alt"></i> Anotar Documento PDF</h3>
+                <span class="close-modal-annotate">&times;</span>
+            </div>
+            <div class="modal-body"
+                style="padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 80vh;">
+                <div class="annotate-toolbar"
+                    style="padding: 15px 20px; border-bottom: 1px solid var(--itb-border); display: flex; justify-content: space-between; align-items: center; background: #f9f9f9;">
+                    <div id="annotateFileName" style="font-weight: 600; color: var(--itb-primary);">Documento.pdf</div>
+                    <div class="pagination-controls" style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn btn-sm" id="prevPageBtn"><i class="fas fa-chevron-left"></i></button>
+                        <span style="font-size: 0.9rem;">Página <span id="currentAnnotatePage">1</span> de <span
+                                id="totalAnnotatePages">1</span></span>
+                        <button class="btn btn-sm" id="nextPageBtn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div id="pdfViewerContainer"
+                    style="flex: 1; overflow: auto; background: #525659; position: relative; display: flex; justify-content: center; padding: 20px;">
+                    <div id="pdfCanvasWrapper"
+                        style="position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid #000; cursor: crosshair;">
+                        <canvas id="pdfCanvas"></canvas>
+                        <div id="annotationsOverlay"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                        </div>
+                    </div>
+
+                    <!-- Floating form for notes -->
+                    <div id="floatingNoteForm"
+                        style="display: none; position: absolute; background: white; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 15px; width: 250px; z-index: 1000; border: 1px solid var(--itb-secondary);">
+                        <h5 style="margin-top: 0; margin-bottom: 10px; font-size: 0.9rem; color: var(--itb-primary);">
+                            Nueva Anotación</h5>
+                        <textarea id="noteText"
+                            style="width: 100%; height: 80px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; font-size: 0.85rem; resize: none; margin-bottom: 10px;"
+                            placeholder="Escribe aquí tu observación..."></textarea>
+                        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                            <button class="btn btn-sm" id="cancelNote"
+                                style="background: var(--itb-gray); height: 30px; padding: 0 10px; font-size: 0.75rem;">Cancelar</button>
+                            <button class="btn btn-sm" id="saveNote"
+                                style="height: 30px; padding: 0 10px; font-size: 0.75rem;">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer"
+                    style="padding: 15px 20px; border-top: 1px solid var(--itb-border); display: flex; justify-content: flex-end; gap: 10px; background: white;">
+                    <button class="btn close-modal-annotate-btn"
+                        style="height: 40px; background: #95a5a6; border-color: #7f8c8d;">
+                        <i class="fas fa-times-circle"></i> Cerrar
+                    </button>
+                    <button class="btn" id="saveAndSendAnnotateBtn" style="height: 40px;">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     <script src="auth-utils.js"></script>
     <script src="script.js"></script>
     <script src="user-dropdown.js"></script>

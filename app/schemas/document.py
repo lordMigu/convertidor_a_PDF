@@ -58,6 +58,10 @@ class DocumentResponse(DocumentBase):
     permission: Optional[str] = None # 'owner', 'editor', 'viewer'
     is_owner: bool = False
     shared_with_others: bool = False
+<<<<<<< HEAD
+=======
+    shared_externally: bool = False
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     
     model_config = ConfigDict(from_attributes=True)
 

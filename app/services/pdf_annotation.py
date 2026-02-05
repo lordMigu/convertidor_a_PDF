@@ -104,7 +104,12 @@ class PDFAnnotationService:
         # PyMuPDF usa (x0, y0, x1, y1) donde (x0,y0) es esquina superior izquierda
         rect = fitz.Rect(x, y, x + 150, y + 40)
         
+<<<<<<< HEAD
         # Agregar anotación de texto
+=======
+        # Agregar anotación de texto (Tipo "Sticky Note")
+        # Se prefiere este tipo porque es interactivo y estándar en lectores de PDF.
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
         annot = page.add_text_annot(
             point=(x, y),
             text=text,

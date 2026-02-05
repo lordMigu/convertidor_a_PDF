@@ -19,6 +19,10 @@ class Document(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+<<<<<<< HEAD
+=======
+    shared_externally = Column(Boolean, default=False)
+>>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relaciones
