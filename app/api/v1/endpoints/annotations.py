@@ -197,35 +197,15 @@ async def send_email_background(
             subject=subject,
             recipients=[recipient],
             body=body,
-<<<<<<< HEAD
-            subtype=MessageType.html if "<" in body else MessageType.plain
-=======
             subtype=MessageType.html if "<" in body else MessageType.plain,
             # NOTA: En FastAPI-Mail >= 1.4.0, los adjuntos deben ir en el MessageSchema.
             # Se convierten a str porque Pydantic espera cadenas de texto para las rutas.
             attachments=[str(attachment_path)] if attachment_path and attachment_path.exists() else []
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
         )
         
         # Enviar correo
         fm = FastMail(mail_config)
-<<<<<<< HEAD
-        
-        if attachment_path and attachment_path.exists():
-            # Adjuntar archivo
-            await fm.send_message(
-                message,
-                template_name=None,
-                attachments=[{
-                    "file": str(attachment_path),
-                    "filename": attachment_name or attachment_path.name
-                }]
-            )
-        else:
-            await fm.send_message(message, template_name=None)
-=======
         await fm.send_message(message)
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
         
         print(f"✅ Correo enviado exitosamente a {recipient}")
         
@@ -302,16 +282,12 @@ async def send_email_with_pdf(
         </html>
         """
     
-<<<<<<< HEAD
-    # 7. Agregar tarea en background
-=======
     # 7. Actualizar flag de compartido externamente
     document.shared_externally = True
     db.add(document)
     await db.commit()
     
     # 8. Agregar tarea en background
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     background_tasks.add_task(
         send_email_background,
         recipient=request.recipient,

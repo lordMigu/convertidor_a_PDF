@@ -9,12 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-<<<<<<< HEAD
-    <!-- Biblioteca para leer archivos DOCX -->
-=======
     <!-- Biblioteca para trabajar con PDFs (Anotaciones) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     <script src="https://unpkg.com/mammoth@1.4.8/mammoth.browser.min.js"></script>
     <!-- NOTA: NO cargar login-styles.css aquí -->
     <link rel="shortcut icon" type="image/x-icon"
@@ -97,18 +93,7 @@
 
             </div>
 
-<<<<<<< HEAD
-            <!-- Simulation Toggle (Demo Mode) -->
-            <div class="sim-toggle-container">
-                <span class="sim-label"><i class="fas fa-flask"></i> MODO DEMO (Simulación)</span>
-                <label class="sim-switch">
-                    <input type="checkbox" id="globalSimToggle" checked>
-                    <span class="sim-slider"></span>
-                </label>
-            </div>
-=======
             <!-- Upload section -->
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
 
             <!-- Upload section -->
             <section class="upload-section" id="uploadSection">
@@ -210,22 +195,6 @@
                         </button>
                         <input type="file" class="file-input" id="validateInput" accept=".pdf">
                     </div>
-<<<<<<< HEAD
-
-                    <div id="validateSimInput" style="margin-top: 20px; display: block;">
-                        <div class="sim-info-box">
-                            <i class="fas fa-file-pdf sim-info-icon"></i>
-                            <div class="sim-info-text">
-                                <h5>Documento de Prueba.pdf</h5>
-                                <p>Listo para validación simulada</p>
-                            </div>
-                        </div>
-                        <button class="btn btn-sm btn-secondary" id="simulateValidateBtn" style="background: #e67e22;">
-                            <i class="fas fa-play"></i> Validar Documento de Prueba
-                        </button>
-                    </div>
-=======
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                 </div>
 
                 <div id="validationResult" class="history-files"
@@ -330,35 +299,14 @@
             <div class="modal-body">
                 <p id="signFileName" class="share-file-name">Documento.pdf</p>
                 <form id="signForm">
-<<<<<<< HEAD
-                    <div id="signRealInputs" style="display: none;">
-                        <div class="form-group">
-                            <label for="p12File">Certificado Digital (.p12, .pfx):</label>
-                            <input type="file" id="p12File" class="form-control" accept=".p12,.pfx">
-=======
                     <div id="signRealInputs">
                         <div class="form-group">
                             <label for="p12File">Certificado Digital (.p12, .pfx):</label>
                             <input type="file" id="p12File" class="form-control" accept=".p12,.pfx" required>
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                             <small style="color: var(--itb-gray);">Sube tu archivo de firma electrónica.</small>
                         </div>
                     </div>
 
-<<<<<<< HEAD
-                    <div id="signSimInputs" style="display: block;">
-                        <div class="sim-info-box">
-                            <i class="fas fa-id-card sim-info-icon"></i>
-                            <div class="sim-info-text">
-                                <h5>Certificado Virtual Activo</h5>
-                                <p>Titular: ROBERTO ALEXIS NEGRETE</p>
-                                <p>Vencimiento: 20/09/2026</p>
-                            </div>
-                        </div>
-                    </div>
-
-=======
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                     <div class="form-group">
                         <label for="p12Password">Contraseña del certificado:</label>
                         <input type="password" id="p12Password" class="form-control"
@@ -383,32 +331,18 @@
     <div id="shareModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-<<<<<<< HEAD
-                <h3><i class="fas fa-user-plus"></i> Compartir Documento</h3>
-=======
                 <h3><i class="fas fa-envelope"></i> Compartir por Correo</h3>
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                 <span class="close-modal">&times;</span>
             </div>
             <div class="modal-body">
                 <p id="shareFileName" class="share-file-name">Documento.docx</p>
                 <form id="shareForm">
                     <div class="form-group">
-<<<<<<< HEAD
-                        <label for="shareEmail">Correo electrónico del usuario:</label>
-=======
                         <label for="shareEmail">Correo del destinatario:</label>
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                         <input type="email" id="shareEmail" class="form-control" placeholder="usuario@itb.edu.ec"
                             required>
                     </div>
                     <div class="form-group">
-<<<<<<< HEAD
-                        <label for="shareLevel">Permiso:</label>
-                        <select id="shareLevel" class="form-control">
-                            <option value="viewer">Lector (Solo ver)</option>
-                            <option value="editor">Editor (Puede eliminar/actualizar)</option>
-=======
                         <label for="shareSubject">Asunto:</label>
                         <input type="text" id="shareSubject" class="form-control" value="Documento compartido" required>
                     </div>
@@ -418,7 +352,6 @@
                             <option value="viewer">Lector (Solo ver)</option>
                             <option value="editor">Editor (Puede eliminar/actualizar)</option>
                             <option value="none">- (Solo enviar por correo)</option>
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
                         </select>
                     </div>
 
@@ -433,8 +366,6 @@
         </div>
     </div>
 
-<<<<<<< HEAD
-=======
     <!-- Annotate Modal -->
     <div id="annotateModal" class="modal">
         <div class="modal-content" style="max-width: 90%; width: 1000px;">
@@ -498,7 +429,6 @@
 
 
 
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     <script src="auth-utils.js"></script>
     <script src="script.js"></script>
     <script src="user-dropdown.js"></script>

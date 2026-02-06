@@ -16,13 +16,14 @@ async def test_email_config():
         MAIL_STARTTLS=os.getenv("MAIL_STARTTLS") == "True",
         MAIL_SSL_TLS=os.getenv("MAIL_SSL_TLS") == "True",
         USE_CREDENTIALS=os.getenv("MAIL_USE_CREDENTIALS") == "True",
-        VALIDATE_CERTS=os.getenv("MAIL_VALIDATE_CERTS") == "True",
-        TEMPLATE_FOLDER="app/templates/email"
+        VALIDATE_CERTS=os.getenv("MAIL_VALIDATE_CERTS") == "True"
+        # ,
+        # TEMPLATE_FOLDER="app/templates/email"
     )
 
     message = MessageSchema(
         subject="Prueba de Configuración AntiGravity",
-        recipients=["cabreramguillen@gmail.com"],
+        recipients=["steven@itb.edu.ec"],
         body="Si recibes este correo, la configuración de SMTP en AntiGravity es correcta.",
         subtype=MessageType.plain
     )
@@ -30,7 +31,7 @@ async def test_email_config():
     fm = FastMail(conf)
     try:
         await fm.send_message(message)
-        print("✅ Correo enviado exitosamente a cabreramguillen@gmail.com")
+        print("✅ Correo enviado exitosamente a steven@itb.edu.ec")
     except Exception as e:
         print(f"❌ Error al enviar correo: {str(e)}")
         print("\nVerifica que hayas puesto la 'Contraseña de Aplicación' correcta en el archivo .env")

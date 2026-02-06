@@ -25,6 +25,7 @@ def get_mail_config() -> ConnectionConfig:
         MAIL_STARTTLS=settings.mail_starttls,
         MAIL_SSL_TLS=settings.mail_ssl_tls,
         USE_CREDENTIALS=settings.mail_use_credentials,
-        VALIDATE_CERTS=settings.mail_validate_certs,
-        TEMPLATE_FOLDER="app/templates/email"  # Carpeta para templates de correo
+        VALIDATE_CERTS=settings.mail_validate_certs
+        # ,
+        # TEMPLATE_FOLDER="app/templates/email"  # Carpeta para templates de correo
     )

@@ -10,9 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Elementos del DOM
     const loginForm = document.getElementById('loginForm');
-<<<<<<< HEAD
-    if (!loginForm) return;
-=======
     const recoveryForm = document.getElementById('recoveryForm');
     if (!loginForm || !recoveryForm) return;
 
@@ -20,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const recoveryView = document.getElementById('recoveryView');
     const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
     const backToLoginBtn = document.getElementById('backToLoginBtn');
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
 
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -112,18 +108,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-<<<<<<< HEAD
-    // Manejar envío del formulario
-=======
     // Manejar envío del formulario de Login
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     loginForm.addEventListener('submit', function (e) {
         e.preventDefault();
         realLogin();
     });
 
-<<<<<<< HEAD
-=======
     // --- LÓGICA DE RECUPERACIÓN / RESTABLECIMIENTO (FRONTEND) ---
     // Esta sección maneja el intercambio de vistas y la simulación del cambio de clave.
 
@@ -198,7 +188,6 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
     });
 
->>>>>>> 5ce56ba (Validado el envio de correo usando .env)
     // Permitir Enter para enviar
     if (passwordInput) {
         passwordInput.addEventListener('keypress', function (e) {
