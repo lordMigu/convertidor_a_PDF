@@ -5,24 +5,25 @@ Endpoints para firma electrónica y validación de PDFs con pyHanko.
 import os
 import shutil
 import uuid
-import asyncio
 import tempfile
 from pathlib import Path
 from typing import Optional, List
 from datetime import datetime
 
-from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status
+from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
-# Importaciones de pyHanko
-from pyhanko.sign import signers, fields
-from pyhanko.sign.fields import SigSeedSubFilter
+# --- IMPORTACIONES PYHANKO ---
+from pyhanko.sign import signers
 from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
-from pyhanko.sign.validation import validate_pdf_signature
 from pyhanko.pdf_utils.reader import PdfFileReader
+
+# Importaciones específicas para validación y manejo de errores
+from pyhanko.sign.validation import validate_pdf_signature, ValidationContext
+from pyhanko_certvalidator.errors import InvalidCertificateError, PathBuildingError
 
 from app.db.session import get_db
 from app.api import deps
@@ -200,53 +201,175 @@ async def sign_document(
     return new_version
 
 
+# def _validate_pdf_task(file_path: str) -> dict:
+#     """
+#     Valida las firmas de un PDF de forma síncrona.
+#     """
+#     result_data = {
+#         "is_valid": False,
+#         "trusted": False,
+#         "signer_name": None,
+#         "timestamp": None
+#     }
+    
+#     try:
+#         with open(file_path, 'rb') as f:
+#             # strict=False permite validar PDFs con referencias híbridas (modificados después de la creación)
+#             # trust_system_certs configura si confiar en certificados del sistema
+#             from pyhanko.sign.validation import ValidationContext
+            
+#             r = PdfFileReader(f, strict=False)
+            
+#             # Verificar si hay firmas incrustadas
+#             if not r.embedded_signatures:
+#                 return result_data
+
+#             # Validar la última firma encontrada con contexto de validación permisivo
+#             # trust_system_certs=True permite confiar en certificados del almacén del sistema
+#             vc = ValidationContext(
+#                 trust_roots=None,  # Usará los certificados del sistema si están disponibles
+#                 allow_fetching=False,  # No intentar descargar certificados de internet
+#                 revocation_mode='soft-fail'  # No fallar estrictamente en revisión de revocación
+#             )
+            
+#             sig_status = validate_pdf_signature(
+#                 r.embedded_signatures[-1],
+#                 vc
+#             )
+            
+#             result_data["is_valid"] = sig_status.intact
+#             result_data["trusted"] = sig_status.trusted
+            
+#             if sig_status.signer_cert:
+#                 # Extraer CN (Common Name) del certificado
+#                 subject = sig_status.signer_cert.subject
+                
+#                 # Intentar obtener CN de forma robusta
+#                 for attribute in subject:
+#                      if attribute.oid._name == "commonName":
+#                          result_data["signer_name"] = attribute.value
+#                          break
+                
+#                 if not result_data["signer_name"]:
+#                     # Fallback
+#                     result_data["signer_name"] = str(subject.rfc4514_string())
+
+#             if sig_status.signing_time:
+#                 result_data["timestamp"] = sig_status.signing_time
+
+#     except Exception as e:
+#         print(f"Error validando firma: {e}")
+#         # En caso de error, retornamos estructura por defecto (inválido)
+        
+#     return result_data
+
+
+# @router.post("/validate", response_model=SignatureValidationResponse)
+# async def validate_signature(
+#     file: UploadFile = File(...)
+# ):
+#     """
+#     Valida las firmas electrónicas de un archivo PDF subido.
+#     Retorna información sobre la validez, firmante y fecha.
+#     """
+#     # Guardar temporalmente para analisis
+#     temp_filename = f"validate_{uuid.uuid4()}.pdf"
+#     temp_path = UPLOAD_DIR / temp_filename
+    
+#     try:
+#         with open(temp_path, "wb") as buffer:
+#             shutil.copyfileobj(file.file, buffer)
+            
+#         # Ejecutar validación en threadpool
+#         result = await run_in_threadpool(_validate_pdf_task, str(temp_path))
+        
+#         return SignatureValidationResponse(**result)
+        
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error validando PDF: {str(e)}")
+#     finally:
+#         # Limpieza de archivo temporal
+#         if temp_path.exists():
+#             temp_path.unlink()
+
 def _validate_pdf_task(file_path: str) -> dict:
     """
     Valida las firmas de un PDF de forma síncrona.
+    Maneja certificados autofirmados sin romper la ejecución.
     """
     result_data = {
         "is_valid": False,
         "trusted": False,
-        "signer_name": None,
-        "timestamp": None
+        "signer_name": "Desconocido",
+        "timestamp": None,
+        "details": ""
     }
     
     try:
         with open(file_path, 'rb') as f:
-            r = PdfFileReader(f)
-            # Verificar si hay firmas incrustadas
+            # Leer el PDF
+            r = PdfFileReader(f, strict=False)
+            
+            # 1. Verificar si hay firmas
             if not r.embedded_signatures:
+                result_data["details"] = "No se encontraron firmas en el documento."
                 return result_data
 
-            # Validar la última firma encontrada
-            sig_status = validate_pdf_signature(r.embedded_signatures[-1])
-            
-            result_data["is_valid"] = sig_status.intact
-            result_data["trusted"] = sig_status.trusted
-            
-            if sig_status.signer_cert:
-                # Extraer CN (Common Name) del certificado
-                subject = sig_status.signer_cert.subject
-                
-                # Intentar obtener CN de forma robusta
-                for attribute in subject:
-                     if attribute.oid._name == "commonName":
-                         result_data["signer_name"] = attribute.value
-                         break
-                
-                if not result_data["signer_name"]:
-                    # Fallback
-                    result_data["signer_name"] = str(subject.rfc4514_string())
+            # Tomamos la última firma
+            sig = r.embedded_signatures[-1]
 
-            if sig_status.signing_time:
-                result_data["timestamp"] = sig_status.signing_time
+            # --- PASO A: Intentar extraer información visual (metadatos) ANTES de validar ---
+            # Esto asegura que si la validación falla (certificado malo), 
+            # al menos sabemos quién dice ser el firmante.
+            try:
+                # El certificado está dentro del objeto cms_signed_data
+                cert = sig.signer_cert
+                if cert:
+                    # Intentamos sacar el Common Name (CN)
+                    result_data["signer_name"] = cert.subject.human_friendly
+                
+                # Intentamos sacar la fecha de la firma (no la del timestamp server, sino la del PDF)
+                if sig.signer_reporting_time:
+                    result_data["timestamp"] = sig.signer_reporting_time
+            except Exception as e:
+                print(f"Warning: No se pudieron leer metadatos previos a validación: {e}")
+
+            # --- PASO B: Configurar el Contexto de Validación ---
+            # allow_fetching=True permite descargar CRLs/OCSP si es necesario (lento pero seguro)
+            # Para desarrollo, puedes poner trust_roots=[] para confiar en todo (PELIGROSO en prod)
+            vc = ValidationContext(
+                allow_fetching=False,          # False para velocidad, True para seguridad real
+                trust_roots=None,              # None = Usar tienda del sistema operativo
+                revocation_mode='soft-fail'    # No fallar si no hay internet para chequear revocación
+            )
+            
+            # --- PASO C: Validar Criptográficamente ---
+            try:
+                # Esto es lo que lanzaba el error antes
+                status = validate_pdf_signature(sig, vc)
+                
+                # Si llegamos aquí, la cadena de confianza se construyó (aunque puede tener warnings)
+                result_data["is_valid"] = status.intact and status.valid
+                result_data["trusted"] = status.trusted
+                
+                # Sobrescribir timestamp si hay uno verificado criptográficamente
+                if status.signing_time:
+                    result_data["timestamp"] = status.signing_time
+                
+                result_data["details"] = "Firma válida y verificada."
+
+            except (InvalidCertificateError, PathBuildingError) as e:
+                # AQUÍ CAPTURAMOS EL ERROR DE "SELF-SIGNED"
+                result_data["is_valid"] = False
+                result_data["trusted"] = False
+                result_data["details"] = f"Certificado no confiable o autofirmado: {str(e)}"
+                print(f"Validación fallida controlada: {e}")
 
     except Exception as e:
-        print(f"Error validando firma: {e}")
-        # En caso de error, retornamos estructura por defecto (inválido)
+        print(f"Error crítico leyendo el PDF o validando: {e}")
+        result_data["details"] = f"Error procesando archivo: {str(e)}"
         
     return result_data
-
 
 @router.post("/validate", response_model=SignatureValidationResponse)
 async def validate_signature(
@@ -256,15 +379,16 @@ async def validate_signature(
     Valida las firmas electrónicas de un archivo PDF subido.
     Retorna información sobre la validez, firmante y fecha.
     """
-    # Guardar temporalmente para analisis
     temp_filename = f"validate_{uuid.uuid4()}.pdf"
     temp_path = UPLOAD_DIR / temp_filename
     
     try:
+        # Guardado asíncrono eficiente (chunks) en lugar de shutil directo si el archivo es grande,
+        # pero shutil está bien para archivos normales.
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        # Ejecutar validación en threadpool
+        # Ejecutar validación en threadpool (evita bloquear el servidor)
         result = await run_in_threadpool(_validate_pdf_task, str(temp_path))
         
         return SignatureValidationResponse(**result)
@@ -272,6 +396,9 @@ async def validate_signature(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error validando PDF: {str(e)}")
     finally:
-        # Limpieza de archivo temporal
-        if temp_path.exists():
-            temp_path.unlink()
+        # Limpieza robusta: usar unlink(missing_ok=True) en Python 3.8+
+        try:
+            if temp_path.exists():
+                temp_path.unlink()
+        except Exception:
+            pass
