@@ -176,3 +176,146 @@ async def get_me(current_user: User = Depends(deps.get_current_user)):
     Obtiene la información del usuario actual.
     """
     return current_user
+
+
+from datetime import datetime, timedelta
+from fastapi import BackgroundTasks
+
+from app.schemas.password_reset import (
+    PasswordRecoveryRequest,
+    PasswordRecoveryResponse,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
+)
+
+from app.core.security import (
+    generate_reset_token,
+    hash_reset_token,
+    hash_password,
+)
+
+from app.services.mail_service import send_email_background
+
+@router.post("/password-recovery", response_model=PasswordRecoveryResponse)
+async def password_recovery(
+    request: PasswordRecoveryRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+) -> PasswordRecoveryResponse:
+    """
+    Solicita restablecimiento. Respuesta SIEMPRE genérica (no revela si el email existe).
+    """
+    # Si no hay config de correo, para tu caso mejor lanzar 500 (o devolver genérico)
+    if not settings.mail_username or not settings.mail_password:
+        raise HTTPException(
+            status_code=500,
+            detail="Configuración de correo no disponible. Configure MAIL_USERNAME y MAIL_PASSWORD."
+        )
+
+    # Buscar usuario por email (pero no revelar resultado)
+    stmt = select(User).where(User.email == request.email)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    # Respuesta genérica (siempre)
+    generic_response = PasswordRecoveryResponse(
+        success=True,
+        message="Si el correo existe, enviaremos un enlace para restablecer tu contraseña."
+    )
+
+    if not user:
+        return generic_response
+
+    if not user.is_active:
+        # Igual devolvemos genérico para no filtrar información
+        return generic_response
+
+    # Generar token + guardar hash + expirar
+    token = generate_reset_token()
+    token_hash = hash_reset_token(token)
+    expires_at = datetime.utcnow() + timedelta(minutes=settings.password_reset_token_expire_minutes)
+
+    user.password_reset_token_hash = token_hash
+    user.password_reset_token_expires_at = expires_at
+    user.password_reset_token_used_at = None
+
+    db.add(user)
+    await db.commit()
+
+    # Link al frontend
+    reset_link = f"{settings.frontend_base_url.rstrip('/')}/reset-password?token={token}"
+
+    subject = "Restablecer contraseña"
+    body = f"""
+    <html>
+      <body style="font-family: Arial, sans-serif;">
+        <h2>Restablecer contraseña</h2>
+        <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+        <p>
+          Haz clic aquí para crear una nueva contraseña:
+          <br/>
+          <a href="{reset_link}" style="display:inline-block;padding:10px 14px;text-decoration:none;border-radius:6px;border:1px solid #333;">
+            Restablecer contraseña
+          </a>
+        </p>
+        <p>Este enlace expira en <strong>{settings.password_reset_token_expire_minutes} minutos</strong>.</p>
+        <p>Si tú no hiciste esta solicitud, puedes ignorar este mensaje.</p>
+      </body>
+    </html>
+    """
+
+    background_tasks.add_task(
+        send_email_background,
+        recipient=user.email,
+        subject=subject,
+        body=body,
+    )
+
+    return generic_response
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> ResetPasswordResponse:
+    """
+    Restablece la contraseña usando el token.
+    """
+    token_hash = hash_reset_token(request.token)
+    now = datetime.utcnow()
+
+    # Buscar usuario con token vigente y no usado
+    stmt = select(User).where(User.password_reset_token_hash == token_hash)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if (
+        not user
+        or not user.password_reset_token_expires_at
+        or user.password_reset_token_expires_at < now
+        or user.password_reset_token_used_at is not None
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Token inválido o expirado."
+        )
+
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Usuario inactivo")
+
+    # Actualizar password
+    user.password_hash = hash_password(request.new_password)
+
+    # Invalidar token (un solo uso)
+    user.password_reset_token_used_at = now
+    user.password_reset_token_hash = None
+    user.password_reset_token_expires_at = None
+
+    db.add(user)
+    await db.commit()
+
+    return ResetPasswordResponse(
+        success=True,
+        message="Contraseña actualizada correctamente."
+    )

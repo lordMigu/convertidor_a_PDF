@@ -83,3 +83,19 @@ def decode_token(token: str) -> Optional[str]:
         return email
     except JWTError:
         return None
+    
+import hashlib
+import secrets
+
+def generate_reset_token() -> str:
+    """
+    Token fuerte y URL-safe para restablecimiento.
+    """
+    return secrets.token_urlsafe(32)
+
+
+def hash_reset_token(token: str) -> str:
+    """
+    Guarda en BD SOLO el hash del token (no el token en texto plano).
+    """
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()

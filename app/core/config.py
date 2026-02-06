@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30 # 30 minutos
     
+    frontend_base_url: str = "http://localhost:3000"
+    password_reset_token_expire_minutes: int = 30
+    
     # CORS (para frontend)
     allowed_origins: list[str] = [
         "http://localhost:3000",

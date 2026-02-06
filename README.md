@@ -92,6 +92,17 @@ proyecto/
 
 ## 🔐 Autenticación
 
+### Endpoints disponibles
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | /api/v1/auth/register | Registro de usuario |
+| POST | /api/v1/auth/login | Login con JSON (email y password) |
+| POST | /api/v1/auth/login/access-token | Login con form-data (OAuth2PasswordRequestForm) |
+| GET | /api/v1/auth/me | Obtener usuario actual (requiere token) |
+| POST | /api/v1/auth/password-recovery | Solicitar restablecimiento de contraseña |
+| POST | /api/v1/auth/reset-password | Restablecer contraseña con token |
+
 ### Registro de Usuario
 
 ```bash

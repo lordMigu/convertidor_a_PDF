@@ -2,7 +2,7 @@
 Modelo ORM para la tabla de Usuarios.
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, Index
+from sqlalchemy import Column, Integer, String, Boolean, Index, DateTime
 from app.db.base import Base
 
 
@@ -50,6 +50,9 @@ class User(Base):
         nullable=False,
         doc="Indica si el usuario está activo"
     )
+    password_reset_token_hash = Column(String, nullable=True, index=True)
+    password_reset_token_expires_at = Column(DateTime, nullable=True)
+    password_reset_token_used_at = Column(DateTime, nullable=True)
     
     # Índices adicionales
     __table_args__ = (
