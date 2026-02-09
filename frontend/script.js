@@ -8,6 +8,11 @@ const API_URL = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL) || "http:/
 document.addEventListener('DOMContentLoaded', function () {
     console.log('✅ Conversor de Archivos a PDF - Multi-formato');
 
+    // Verificar autenticación antes de cargar nada
+    if (typeof initializeAuth === 'function') {
+        initializeAuth();
+    }
+
     // Elementos del DOM
     const fileInput = document.getElementById('fileInput');
     const selectFileBtn = document.getElementById('selectFileBtn');
@@ -161,6 +166,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (clearSharedBtn) clearSharedBtn.style.display = 'block';
 
         hideMessages();
+        hideMessages();
+        loadDocuments(); // Cargar todos los documentos
+        hideMessages();
         loadDocuments(); // Cargar todos los documentos
     }
 
@@ -249,6 +257,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (response.status === 401) {
                     logout();
                     return;
+                }
+                if (response.ok) {
+                    backendDocs = await response.json();
                 }
                 if (response.ok) {
                     backendDocs = await response.json();

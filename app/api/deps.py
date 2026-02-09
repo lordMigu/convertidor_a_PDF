@@ -111,9 +111,9 @@ async def verify_document_access(
         Permission.user_id == current_user.id
     )
     result = await db.execute(stmt)
-    permission = result.scalar_one_or_none()
+    permissions = result.scalars().all()
 
-    if not permission:
+    if not permissions:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permiso para acceder a este documento."
@@ -121,14 +121,31 @@ async def verify_document_access(
 
     # Lógica de niveles de permiso
     levels = ["viewer", "editor", "owner"]
+    
+    # Encontrar el nivel más alto que tenga el usuario (en caso de duplicados)
+    best_level_idx = -1
+    
+    for perm in permissions:
+        try:
+            idx = levels.index(perm.permission_level)
+            if idx > best_level_idx:
+                best_level_idx = idx
+        except ValueError:
+            continue
+            
+    if best_level_idx == -1:
+         raise HTTPException(status_code=403, detail="Error en configuración de permisos.")
+
+    current_level = levels[best_level_idx]
+
     try:
-        if levels.index(permission.permission_level) < levels.index(required_level):
+        required_idx = levels.index(required_level)
+        if best_level_idx < required_idx:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Se requiere permiso de {required_level} para esta acción."
             )
     except ValueError:
-        # Si el nivel en DB no es reconocido, denegamos por seguridad
-        raise HTTPException(status_code=403, detail="Error en configuración de permisos.")
+        raise HTTPException(status_code=500, detail="Nivel de permiso requerido inválido.")
 
-    return permission.permission_level
+    return current_level

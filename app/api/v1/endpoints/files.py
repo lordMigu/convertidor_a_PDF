@@ -301,12 +301,19 @@ async def share_document(
         Permission.user_id == target_user.id
     )
     res_perm = await db.execute(stmt_perm)
-    existing_perm = res_perm.scalar_one_or_none()
+    # Obtener todos los permisos existentes para limpiar duplicados si existen
+    existing_perms = res_perm.scalars().all()
     
-    if existing_perm:
-        existing_perm.permission_level = share_data.permission_level
-        db.add(existing_perm)
-        perm = existing_perm
+    if existing_perms:
+        # Nos quedamos con el primero y actualizamos
+        perm = existing_perms[0]
+        perm.permission_level = share_data.permission_level
+        db.add(perm)
+        
+        # Si hay duplicados, los borramos
+        if len(existing_perms) > 1:
+            for extra_perm in existing_perms[1:]:
+                await db.delete(extra_perm)
     else:
         perm = Permission(
             user_id=target_user.id,

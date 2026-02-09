@@ -238,44 +238,65 @@ async function registerUser(email, password, role = 'user') {
     }
 }
 
-// Actualizar información del usuario en la interfaz
-function updateUserUI() {
-    const userData = getUserData();
-    const userInfo = formatUserInfo(userData);
 
-    // Actualizar avatar
-    const userAvatar = document.getElementById('userAvatar');
-    if (userAvatar) {
-        userAvatar.textContent = userInfo.initials;
-        userAvatar.style.background = 'linear-gradient(135deg, var(--itb-secondary), var(--itb-accent))';
-    }
+/**
+ * Solicita el restablecimiento de contraseña (fase de envío de correo)
+ * @param {string} email - Correo electrónico del usuario
+ * @returns {Promise<Object>} - Respuesta de la API
+ */
+async function requestPasswordRecovery(email) {
+    try {
+        const response = await fetch(`${AUTH_CONFIG.API_URL}/api/v1/auth/password-recovery`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
 
-    // Actualizar nombre
-    const userName = document.getElementById('userName');
-    if (userName) {
-        userName.textContent = userData ? (userData.name || userData.email) : 'Roberto Negrete';
-    }
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Error en la solicitud de recuperación');
+        }
 
-    // Actualizar rol
-    const userRole = document.getElementById('userRole');
-    if (userRole) {
-        userRole.textContent = userInfo.role;
+        return await response.json();
+    } catch (error) {
+        console.error('Recovery request error:', error);
+        throw error;
     }
 }
 
-// Inicializar al cargar la página
-if (typeof document !== 'undefined') {
-    document.addEventListener('DOMContentLoaded', function () {
-        initializeAuth();
-        updateUserUI();
-    });
+/**
+ * Restablece la contraseña usando un token válido
+ * @param {string} token - Token recibido por correo
+ * @param {string} newPassword - Nueva contraseña
+ * @returns {Promise<Object>} - Respuesta de la API
+ */
+async function resetPassword(token, newPassword) {
+    try {
+        const response = await fetch(`${AUTH_CONFIG.API_URL}/api/v1/auth/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, new_password: newPassword })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Error al restablecer la contraseña');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Reset password error:', error);
+        throw error;
+    }
 }
 
-// Hacer funciones accesibles globalmente
+// Exportar funciones para uso global
 if (typeof window !== 'undefined') {
     window.clearAuthData = clearAuthData;
     window.getUserData = getUserData;
     window.isAuthenticated = isAuthenticated;
     window.logout = logout;
     window.requireAuth = requireAuth;
+    window.requestPasswordRecovery = requestPasswordRecovery;
+    window.resetPassword = resetPassword;
 }

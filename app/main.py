@@ -128,6 +128,13 @@ async def read_root():
         "supported_formats": [".docx", ".xlsx", ".pptx"]
     }
 
+
+
+# Rutas estáticas para el frontend (montado al final para no interferir con la API)
+frontend_dir = Path("frontend")
+if frontend_dir.exists():
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

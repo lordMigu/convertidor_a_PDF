@@ -243,7 +243,7 @@ async def password_recovery(
     await db.commit()
 
     # Link al frontend
-    reset_link = f"{settings.frontend_base_url.rstrip('/')}/reset-password?token={token}"
+    reset_link = f"{settings.frontend_base_url.rstrip('/')}/reset-password.html?token={token}"
 
     subject = "Restablecer contraseña"
     body = f"""
