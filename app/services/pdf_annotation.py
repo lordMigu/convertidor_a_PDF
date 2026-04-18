@@ -64,27 +64,40 @@ class PDFAnnotationService:
                     page_num = 0
                 
                 page = doc[page_num]
-                
+
                 # Obtener dimensiones de la página
                 page_rect = page.rect
-                
-                # Validar coordenadas
+
+                # Nota: el frontend envía coordenadas en un sistema con origen
+                # en la esquina inferior izquierda (PDF native). PyMuPDF usa
+                # coordenadas con origen superior izquierdo para dibujar.
+                # Convertimos Y: y_page = page_height - y
+                try:
+                    x = float(x)
+                    y = float(y)
+                except Exception:
+                    logger.warning(f"Coordenadas no numéricas: {x}, {y}; se omite anotación")
+                    continue
+
+                # Validar rango en sistema recibido (0..width, 0..height)
                 if not (0 <= x <= page_rect.width and 0 <= y <= page_rect.height):
                     logger.warning(f"Coordenadas ({x}, {y}) fuera de rango de página")
-                    # Ajustar coordenadas si están fuera de rango
-                    x = min(max(0, x), page_rect.width - 50)
-                    y = min(max(0, y), page_rect.height - 20)
-                
-                # Agregar anotación según el tipo
+                    x = min(max(0.0, x), page_rect.width - 50)
+                    y = min(max(0.0, y), page_rect.height - 20)
+
+                # Convertir a coordenadas de PyMuPDF (origen superior)
+                y_page = page_rect.height - y
+                x_page = x
+
+                # Agregar anotación según el tipo usando coordenadas convertidas
                 if annot_type == 'note':
-                    PDFAnnotationService._add_text_note(page, x, y, text)
+                    PDFAnnotationService._add_text_note(page, x_page, y_page, text)
                 elif annot_type == 'highlight':
-                    PDFAnnotationService._add_highlight(page, x, y, text)
+                    PDFAnnotationService._add_highlight(page, x_page, y_page, text)
                 elif annot_type == 'comment':
-                    PDFAnnotationService._add_comment(page, x, y, text)
+                    PDFAnnotationService._add_comment(page, x_page, y_page, text)
                 else:
-                    # Por defecto, agregar como nota
-                    PDFAnnotationService._add_text_note(page, x, y, text)
+                    PDFAnnotationService._add_text_note(page, x_page, y_page, text)
             
             # Guardar el documento anotado
             doc.save(str(output_pdf_path))

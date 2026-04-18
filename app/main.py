@@ -75,8 +75,14 @@ app.include_router(annotations_router)
 @app.post("/convert")
 async def convert_document(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     """
-    Endpoint modular para convertir documentos Office a PDF.
-    Detecta automáticamente el SO y usa la estrategia adecuada.
+        Endpoint modular para convertir documentos Office a PDF.
+        Detecta automáticamente el SO y usa la estrategia adecuada.
+
+        Tipos de archivos soportados (extensiones):
+            - Word: .doc, .docx
+            - Excel: .xls, .xlsx
+            - PowerPoint: .ppt, .pptx
+            - Texto y otros: .txt, .rtf
     """
     # 1. Guardar archivo subido en directorio temporal con nombre único
     file_id = str(uuid.uuid4())

@@ -1076,23 +1076,81 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Limpiar historial
+    // Limpiar historial: eliminar en la nube los documentos propios si hay sesión,
+    // en caso contrario mantener el comportamiento local.
     if (clearHistoryBtn) {
-        clearHistoryBtn.addEventListener('click', function () {
-            if (confirm('¿Estás seguro de que deseas eliminar todo el historial?')) {
+        clearHistoryBtn.addEventListener('click', async function () {
+            if (!confirm('¿Estás seguro de que deseas eliminar todo el historial?')) return;
 
-                // Liberar todas las URLs de PDF locales
+            // Si no está autenticado, simplemente limpiar local
+            if (!isAuthenticated()) {
                 conversionHistory.forEach(item => {
-                    if (item.pdfUrl) {
-                        URL.revokeObjectURL(item.pdfUrl);
-                    }
+                    if (item.pdfUrl) URL.revokeObjectURL(item.pdfUrl);
                 });
-
                 conversionHistory = [];
                 uploadedFiles = [];
                 saveToLocalStorage();
                 loadHistory();
-                showSuccess('Historial eliminado correctamente');
+                showSuccess('Historial eliminado correctamente (local)');
+                return;
+            }
+
+            // Si está autenticado, obtener lista de documentos y eliminar los que sea owner
+            try {
+                const res = await fetch(`${API_URL}/api/v1/files/my-documents`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (res.status === 401) {
+                    logout();
+                    return;
+                }
+
+                if (!res.ok) throw new Error('No se pudo obtener la lista de documentos');
+
+                const docs = await res.json();
+                const owned = docs.filter(d => d.is_owner).map(d => d.id);
+
+                if (owned.length === 0) {
+                    // Aún limpiar almacenamiento local relacionado
+                    conversionHistory.forEach(item => { if (item.pdfUrl) URL.revokeObjectURL(item.pdfUrl); });
+                    conversionHistory = [];
+                    uploadedFiles = [];
+                    saveToLocalStorage();
+                    loadHistory();
+                    showSuccess('No se encontraron documentos en la nube. Historial local limpiado.');
+                    return;
+                }
+
+                // Eliminar secuencialmente para evitar sobrecargar el backend
+                let deleted = 0;
+                let failed = 0;
+                for (const id of owned) {
+                    try {
+                        const r = await fetch(`${API_URL}/api/v1/files/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${getToken()}` }
+                        });
+                        if (r.ok) deleted += 1; else failed += 1;
+                    } catch (err) {
+                        console.error('Error eliminando documento', id, err);
+                        failed += 1;
+                    }
+                }
+
+                // Limpiar localStorage y refrescar vista
+                conversionHistory.forEach(item => { if (item.pdfUrl) URL.revokeObjectURL(item.pdfUrl); });
+                conversionHistory = [];
+                uploadedFiles = [];
+                saveToLocalStorage();
+                await loadHistory();
+
+                if (failed === 0) showSuccess(`Se eliminaron ${deleted} documentos en la nube y se limpió el historial local.`);
+                else showSuccess(`Eliminados ${deleted} documentos; ${failed} no pudieron eliminarse.`);
+
+            } catch (error) {
+                console.error('Error al limpiar historial en la nube:', error);
+                showError('No se pudo eliminar el historial en la nube. Intenta nuevamente.');
             }
         });
     }

@@ -8,7 +8,7 @@ Backend moderno y escalable para un Sistema de Gestión Documental usando **Fast
 - **FastAPI** - Framework web asincrónico
 - **SQLAlchemy 2.0** - ORM para base de datos
 - **SQLite + aiosqlite** - Base de datos con soporte asincrónico
-- **JWT (python-jose)** - Autenticación con tokens
+- **JWT (python-jose)** - Autenticación con tokensprint()
 - **passlib + bcrypt** - Hash seguro de contraseñas
 - **Pydantic V2** - Validación de datos
 
@@ -56,39 +56,8 @@ La aplicación estará disponible en: `http://localhost:8000`
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
-## 🏗️ Estructura del Proyecto
-
-```
-proyecto/
-├── app/
-│   ├── api/
-│   │   ├── v1/
-│   │   │   └── endpoints/
-│   │   │       └── auth.py          # Endpoints de autenticación
-│   │   └── deps.py                  # Dependencias inyectables
-│   ├── core/
-│   │   ├── config.py                # Configuración (settings)
-│   │   ├── security.py              # Hash y JWT
-│   │   └── __init__.py
-│   ├── db/
-│   │   ├── base.py                  # Clase base ORM
-│   │   ├── session.py               # Configuración de sesión
-│   │   └── __init__.py
-│   ├── models/
-│   │   ├── user.py                  # Modelo User
-│   │   └── __init__.py
-│   ├── schemas/
-│   │   ├── user.py                  # Esquemas de Usuario
-│   │   ├── token.py                 # Esquemas de Token
-│   │   └── __init__.py
-│   ├── main.py                      # Punto de entrada
-│   └── __init__.py
-├── tests/                           # Tests (futuro)
-├── .env.example                     # Variables de entorno (ejemplo)
-├── .gitignore                       # Git ignore
-├── requirements.txt                 # Dependencias Python
-└── README.md                        # Este archivo
-```
+## Para obtener un certificado digital para la firma dirigirse a esta ruta en Windows `C:\Program Files\OpenSSL-Win64\bin`
+y usar el archivo .p12, suele llamarse "certificado" o similar.
 
 ## 🔐 Autenticación
 
@@ -169,14 +138,6 @@ Genera una clave segura con:
 ```python
 import secrets
 print(secrets.token_urlsafe(32))
-```
-
-## 🧪 Testing
-
-Para agregar tests, crea archivos en la carpeta `tests/`:
-
-```bash
-pytest
 ```
 
 ## 🔄 Ciclo de Vida de la Aplicación
