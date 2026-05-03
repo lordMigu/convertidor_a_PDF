@@ -424,7 +424,7 @@ body {
 
 .file-details {
     display: grid;
-    grid-template-columns: 1fr 1.3fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 0;
     margin-top: 20px;
     background: #f8fafc;
