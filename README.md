@@ -1,4 +1,6 @@
-# Sistema de Gestión Documental - Backend FastAPI
+# Sistema de Gestión Documental - Backend FastAPI v0.2
+
+> Corregido problemas del front: Mensajes y opciones innecesarios.
 
 Backend moderno y escalable para un Sistema de Gestión Documental usando **FastAPI** y **SQLite**.
 
