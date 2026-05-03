@@ -36,10 +36,6 @@ async def lifespan(app: FastAPI):
     """Gestiona el ciclo de vida de la aplicación."""
     logger.info("🚀 Iniciando aplicación modular de conversión...")
     
-    # Asegurar que las tablas existan
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    
     yield
     
     # Limpieza al cerrar

@@ -20,7 +20,8 @@ class Settings(BaseSettings):
     debug: bool = False
     
     # Base de datos
-    database_url: str = "sqlite+aiosqlite:///./gestion_documental.db"
+    # Por defecto configurado para MySQL local (puedes sobreescribir vía .env)
+    database_url: str = "mysql+aiomysql://root:@127.0.0.1:3307/convertidor_pdf"
     db_echo: bool = False  # Log de sentencias SQL (útil en debug)
     
     # Seguridad - JWT

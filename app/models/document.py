@@ -2,8 +2,8 @@
 Modelos ORM para Documentos y Versiones.
 """
 
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Float
+from datetime import datetime, date
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Float, Date
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
@@ -43,7 +43,6 @@ class Version(Base):
     file_path = Column(String(500), nullable=False)
     file_size = Column(Integer, nullable=False)
     mime_type = Column(String(100), nullable=True)
-    is_latest = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relaciones
@@ -60,11 +59,11 @@ class Permission(Base):
     """
     __tablename__ = "permissions"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    document_id = Column(Integer, ForeignKey("documents.id"), nullable=False)
+    # Primary key compuesta (user_id, document_id)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True, nullable=False)
+    document_id = Column(Integer, ForeignKey("documents.id"), primary_key=True, nullable=False)
     permission_level = Column(String(50), nullable=False) # 'owner', 'editor', 'viewer'
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(Date, default=date.today)
 
     # Relaciones
     user = relationship("User", backref="document_permissions")

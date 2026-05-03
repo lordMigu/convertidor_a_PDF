@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from app.db.session import get_db
 from app.models.user import User
+from app.models.password_reset import PasswordReset
 from app.schemas.user import UserCreate, UserResponse, UserLogin
 from app.schemas.token import Token
 from app.core.security import hash_password, verify_password, create_access_token
@@ -234,12 +235,15 @@ async def password_recovery(
     token = generate_reset_token()
     token_hash = hash_reset_token(token)
     expires_at = datetime.utcnow() + timedelta(minutes=settings.password_reset_token_expire_minutes)
+    # Crear registro en la tabla password_resets
+    reset = PasswordReset(
+        token_hash=token_hash,
+        expires_at=expires_at,
+        used_at=None,
+        user_id=user.id,
+    )
 
-    user.password_reset_token_hash = token_hash
-    user.password_reset_token_expires_at = expires_at
-    user.password_reset_token_used_at = None
-
-    db.add(user)
+    db.add(reset)
     await db.commit()
 
     # Link al frontend
@@ -285,34 +289,39 @@ async def reset_password(
     token_hash = hash_reset_token(request.token)
     now = datetime.utcnow()
 
-    # Buscar usuario con token vigente y no usado
-    stmt = select(User).where(User.password_reset_token_hash == token_hash)
+    # Buscar token válido en password_resets
+    stmt = select(PasswordReset).where(
+        PasswordReset.token_hash == token_hash
+    )
     result = await db.execute(stmt)
-    user = result.scalar_one_or_none()
+    reset = result.scalar_one_or_none()
 
     if (
-        not user
-        or not user.password_reset_token_expires_at
-        or user.password_reset_token_expires_at < now
-        or user.password_reset_token_used_at is not None
+        not reset
+        or not reset.expires_at
+        or reset.expires_at < now
+        or reset.used_at is not None
     ):
         raise HTTPException(
             status_code=400,
             detail="Token inválido o expirado."
         )
 
-    if not user.is_active:
-        raise HTTPException(status_code=403, detail="Usuario inactivo")
+    # Obtener usuario asociado
+    stmt = select(User).where(User.id == reset.user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user or not user.is_active:
+        raise HTTPException(status_code=403, detail="Usuario inactivo o inválido")
 
     # Actualizar password
     user.password_hash = hash_password(request.new_password)
 
-    # Invalidar token (un solo uso)
-    user.password_reset_token_used_at = now
-    user.password_reset_token_hash = None
-    user.password_reset_token_expires_at = None
+    # Marcar token como usado
+    reset.used_at = now
 
-    db.add(user)
+    db.add_all([user, reset])
     await db.commit()
 
     return ResetPasswordResponse(

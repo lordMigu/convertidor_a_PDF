@@ -50,9 +50,7 @@ class User(Base):
         nullable=False,
         doc="Indica si el usuario está activo"
     )
-    password_reset_token_hash = Column(String, nullable=True, index=True)
-    password_reset_token_expires_at = Column(DateTime, nullable=True)
-    password_reset_token_used_at = Column(DateTime, nullable=True)
+    # Los tokens de restablecimiento se gestionan en la tabla `password_resets`
     
     # Índices adicionales
     __table_args__ = (
