@@ -3,14 +3,15 @@ Endpoints de autenticación (login y registro).
 """
 
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserResponse, UserLogin
+from app.schemas.user import UserCreate, UserResponse, UserLogin, RoleUpdate
 from app.schemas.token import Token
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.config import get_settings
@@ -176,6 +177,114 @@ async def get_me(current_user: User = Depends(deps.get_current_user)):
     Obtiene la información del usuario actual.
     """
     return current_user
+
+
+@router.post("/create-admin", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_admin(
+    user_data: UserCreate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(deps.get_current_admin),
+) -> UserResponse:
+    """
+    Crear un usuario con rol 'admin'.
+    Requiere autenticación de un admin existente.
+    """
+
+    # Verificar si el usuario ya existe
+    stmt = select(User).where(User.email == user_data.email)
+    result = await db.execute(stmt)
+    existing_user = result.scalar_one_or_none()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El email ya está registrado"
+        )
+
+    hashed_password = hash_password(user_data.password)
+
+    new_user = User(
+        email=user_data.email,
+        password_hash=hashed_password,
+        role="admin",
+        is_active=True
+    )
+
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+
+    return UserResponse.from_orm(new_user)
+
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(deps.get_current_admin),
+) -> Response:
+    """
+    Elimina un usuario por su ID. Requiere permisos de administrador.
+    Devuelve 204 No Content en caso de éxito.
+    """
+
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    db.delete(user)
+    await db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/users", response_model=List[UserResponse])
+async def list_users(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(deps.get_current_admin),
+) -> List[UserResponse]:
+    """
+    Lista todos los usuarios. Requiere permisos de administrador.
+    """
+    stmt = select(User)
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+
+    return [UserResponse.from_orm(u) for u in users]
+
+
+
+@router.patch("/users/{user_id}/role", response_model=UserResponse)
+async def change_user_role(
+    user_id: int,
+    payload: RoleUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(deps.get_current_admin),
+) -> UserResponse:
+    """
+    Cambia el rol de un usuario (`admin` o `user`). Requiere admin autenticado.
+    """
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    # Validar y aplicar cambio
+    new_role = payload.role
+    if new_role not in ("admin", "user"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Rol inválido")
+
+    user.role = new_role
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    return UserResponse.from_orm(user)
 
 
 from datetime import datetime, timedelta

@@ -59,6 +59,24 @@ class UserLogin(BaseModel):
     }
 
 
+
+class RoleUpdate(BaseModel):
+    """
+    Esquema para actualizar el rol de un usuario.
+    """
+    role: str = Field(
+        ...,
+        pattern="^(admin|user)$",
+        description="Nuevo rol del usuario: 'admin' o 'user'"
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {"role": "admin"}
+        }
+    }
+
+
 class UserResponse(UserBase):
     """
     Esquema para la respuesta del usuario (lectura).
