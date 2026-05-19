@@ -13,7 +13,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-downloads/
+# downloads/  <- Eliminado si quieres subir descargas, pero usualmente se ignora
 eggs/
 .eggs/
 lib/
@@ -48,12 +48,16 @@ venv.bak/
 
 # Logs
 *.log
-logs/
+# logs/ <- Si quieres ignorar la carpeta de logs
 
 # Tests
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Cargas de archivos (Uploads)
+uploads/
+descargas/
 
 # Otros
 .mypy_cache/

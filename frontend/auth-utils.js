@@ -143,6 +143,35 @@ function clearAuthData() {
     appKeys.forEach(key => localStorage.removeItem(key));
 }
 
+// Interceptor global de fetch para manejar sesiones expiradas o eliminadas
+(function() {
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+        try {
+            const response = await originalFetch(...args);
+            
+            // Si el servidor responde 401 (No autorizado)
+            if (response.status === 401) {
+                const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+                
+                // No redirigir si el error es durante el propio login o registro
+                if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+                    console.warn('⚠️ Sesión inválida detectada (401). Cerrando sesión...');
+                    
+                    // Solo redirigir si estamos en una página que requiere auth
+                    if (window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/')) {
+                        clearAuthData();
+                        window.location.href = 'login.html?session=expired';
+                    }
+                }
+            }
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    };
+})();
+
 // Validar email del ITB (para simulación)
 function isValidITBEmail(email) {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@itb\.edu\.ec$/;
@@ -162,10 +191,29 @@ function initializeAuth() {
         }
 
         // Iniciar verificador de sesión cada 30 segundos
-        setInterval(() => {
-            if (isTokenExpired(getToken())) {
+        setInterval(async () => {
+            const token = getToken();
+            if (!token) return;
+
+            if (isTokenExpired(token)) {
                 console.log('⏰ Expiración detectada por el timer');
                 logout();
+                return;
+            }
+
+            // Verificar si el usuario aún existe en el servidor (por si fue eliminado)
+            try {
+                const response = await fetch(`${AUTH_CONFIG.API_URL}/api/v1/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.status === 401) {
+                    console.warn('🚫 Sesión invalidada o usuario eliminado por un administrador');
+                    logout();
+                }
+            } catch (error) {
+                // Si hay error de red no hacemos nada para no cerrar sesión por error de conexión
+                console.log('📡 Error de conexión al verificar sesión');
             }
         }, 30000);
     }
