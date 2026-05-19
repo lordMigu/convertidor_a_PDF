@@ -112,7 +112,10 @@ document.addEventListener('DOMContentLoaded', function () {
         registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
 
         try {
-            await registerUser(email, password);
+            const roleElement = document.getElementById('role');
+            const role = roleElement ? roleElement.value : 'user';
+            
+            await registerUser(email, password, role);
 
             registerForm.innerHTML = `
                 <div style="text-align: center; padding: 40px 20px;">

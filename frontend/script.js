@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (validateBtn) validateBtn.classList.remove('active');
 
         hideMessages();
+        localStorage.setItem('activeModule', 'upload');
     }
 
     // Mostrar sección de historial
@@ -139,6 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (validateBtn) validateBtn.classList.remove('active');
 
         loadHistory();
+        localStorage.setItem('activeModule', 'history');
     }
 
     function showSharedSection() {
@@ -166,10 +168,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (clearSharedBtn) clearSharedBtn.style.display = 'block';
 
         hideMessages();
-        hideMessages();
         loadDocuments(); // Cargar todos los documentos
-        hideMessages();
-        loadDocuments(); // Cargar todos los documentos
+        localStorage.setItem('activeModule', 'shared');
     }
 
     // Mostrar sección de validación
@@ -191,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (clearSharedBtn) clearSharedBtn.style.display = 'none';
 
         hideMessages();
+        localStorage.setItem('activeModule', 'validate');
     }
 
     // Cargar datos desde localStorage
@@ -1973,8 +1974,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-    // Inicializar la aplicación
-    showUploadSection();
+    // Inicializar la aplicación - Cargar último módulo activo
+    const activeModule = localStorage.getItem('activeModule');
+    if (activeModule === 'history') {
+        showHistorySection();
+    } else if (activeModule === 'shared') {
+        showSharedSection();
+    } else if (activeModule === 'validate') {
+        showValidateSection();
+    } else {
+        showUploadSection();
+    }
     updateFormatInfo();
     console.log('✅ Conversor multi-formato listo - Soporta Word, Excel, PowerPoint');
     console.log('📡 API Backend configurada en:', API_URL);
@@ -1999,4 +2009,253 @@ document.addEventListener('DOMContentLoaded', function () {
             console.warn('⚠️  No se puede conectar al servidor:', error.message);
         }
     }
+
+    // ========== GESTIÓN DE USUARIOS (S8) ==========
+    const usersAdminDropdownBtn = document.getElementById('usersAdminDropdownBtn');
+    const adminDivider = document.getElementById('adminDivider');
+    const adminUsersModal = document.getElementById('adminUsersModal');
+    const adminUsersTableBody = document.getElementById('adminUsersTableBody');
+
+    // Modales de Gestión de Usuarios
+    const deleteUserModal = document.getElementById('deleteUserModal');
+    const changeRoleModal = document.getElementById('changeRoleModal');
+    
+    let currentUserIdToDelete = null;
+    let currentUserToChangeRole = null;
+    let newRoleToSet = null;
+
+    // Verificar si el usuario actual es admin para mostrar el botón
+    const currentUser = typeof getUserData === 'function' ? getUserData() : null;
+    if (currentUser && currentUser.role === 'admin' && usersAdminDropdownBtn) {
+        usersAdminDropdownBtn.style.display = 'block'; // Mostrar en el dropdown
+        if (adminDivider) adminDivider.style.display = 'block';
+    }
+
+    if (usersAdminDropdownBtn) {
+        usersAdminDropdownBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Cerrar el dropdown manualmente
+            const dropdownMenu = document.getElementById('userDropdownMenu');
+            const dropdownBtn = document.getElementById('userDropdownBtn');
+            if (dropdownMenu) dropdownMenu.classList.remove('show');
+            if (dropdownBtn) dropdownBtn.classList.remove('active');
+            
+            showAdminUsersSection();
+        });
+    }
+
+    // Modal Events para Admin Users
+    const closeAdminUsersModalBtns = document.querySelectorAll('.close-modal-admin-users');
+    closeAdminUsersModalBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (adminUsersModal) adminUsersModal.style.display = 'none';
+        });
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target === adminUsersModal) {
+            adminUsersModal.style.display = 'none';
+        }
+    });
+
+    function showAdminUsersSection() {
+        // Mostrar modal de admin
+        if (adminUsersModal) adminUsersModal.style.display = 'block';
+
+        // Cargar lista de usuarios
+        loadAdminUsers();
+    }
+
+    async function loadAdminUsers() {
+        if (!adminUsersTableBody) return;
+
+        adminUsersTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Cargando usuarios...</td></tr>`;
+
+        try {
+            const response = await fetch(`${API_URL}/api/v1/auth/users`, {
+                headers: { 'Authorization': `Bearer ${getToken()}` }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error("No tienes permisos de administrador para ver esta sección.");
+                }
+                throw new Error("Error al cargar la lista de usuarios.");
+            }
+
+            const users = await response.json();
+            renderUsersTable(users);
+        } catch (error) {
+            console.error(error);
+            adminUsersTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--itb-accent); padding: 20px;"><i class="fas fa-exclamation-triangle"></i> ${error.message}</td></tr>`;
+        }
+    }
+
+    function renderUsersTable(users) {
+        if (users.length === 0) {
+            adminUsersTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px;">No hay usuarios registrados.</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        users.forEach(user => {
+            const isMe = currentUser && currentUser.email === user.email;
+            const statusBadge = user.is_active ? 
+                `<span class="badge badge-active">Activo</span>` : 
+                `<span class="badge badge-inactive">Inactivo</span>`;
+            
+            const roleSelect = `
+                <select class="role-select" data-id="${user.id}" data-email="${user.email}" ${isMe ? 'disabled title="No puedes cambiar tu propio rol"' : ''}>
+                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>Usuario</option>
+                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrador</option>
+                </select>
+            `;
+
+            const deleteBtn = `
+                <button class="action-btn-delete" data-id="${user.id}" data-email="${user.email}" ${isMe ? 'disabled title="No puedes eliminarte a ti mismo" style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                    <i class="fas fa-trash-alt"></i> Eliminar
+                </button>
+            `;
+
+            html += `
+                <tr>
+                    <td><strong>${user.email}</strong> ${isMe ? '<span class="badge" style="background:#3498db;color:white;">Tú</span>' : ''}</td>
+                    <td>${roleSelect}</td>
+                    <td>${statusBadge}</td>
+                    <td>${deleteBtn}</td>
+                </tr>
+            `;
+        });
+
+        adminUsersTableBody.innerHTML = html;
+
+        // Añadir listeners para los selectores de rol
+        document.querySelectorAll('.role-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const userId = this.getAttribute('data-id');
+                const email = this.getAttribute('data-email');
+                const newRole = this.value;
+                const newRoleText = this.options[this.selectedIndex].text;
+                
+                // Revertir temporalmente el select hasta que se confirme
+                this.value = newRole === 'admin' ? 'user' : 'admin'; 
+
+                currentUserToChangeRole = { id: userId, email: email, selectElement: this };
+                newRoleToSet = newRole;
+
+                document.getElementById('changeRoleEmail').textContent = email;
+                document.getElementById('changeRoleNewText').textContent = newRoleText;
+                changeRoleModal.style.display = 'block';
+            });
+        });
+
+        // Añadir listeners para botones de eliminar
+        document.querySelectorAll('.action-btn-delete').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.disabled) return;
+                currentUserIdToDelete = this.getAttribute('data-id');
+                const email = this.getAttribute('data-email');
+                
+                document.getElementById('deleteUserEmail').textContent = email;
+                deleteUserModal.style.display = 'block';
+            });
+        });
+    }
+
+    // Modal Events para Eliminar
+    const closeDeleteUserModalBtns = document.querySelectorAll('.close-modal-delete-user, .close-modal-delete-user-btn');
+    closeDeleteUserModalBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (deleteUserModal) deleteUserModal.style.display = 'none';
+            currentUserIdToDelete = null;
+        });
+    });
+
+    const confirmDeleteUserBtn = document.getElementById('confirmDeleteUserBtn');
+    if (confirmDeleteUserBtn) {
+        confirmDeleteUserBtn.addEventListener('click', async function() {
+            if (!currentUserIdToDelete) return;
+
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+            this.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/auth/users/${currentUserIdToDelete}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || "Error al eliminar usuario");
+                }
+
+                deleteUserModal.style.display = 'none';
+                if (typeof showSuccess === 'function') showSuccess("Usuario eliminado exitosamente.");
+                loadAdminUsers(); // Recargar la tabla
+            } catch (error) {
+                console.error(error);
+                if (typeof showError === 'function') showError(error.message);
+                deleteUserModal.style.display = 'none';
+            } finally {
+                this.innerHTML = originalText;
+                this.disabled = false;
+                currentUserIdToDelete = null;
+            }
+        });
+    }
+
+    // Modal Events para Cambiar Rol
+    const closeChangeRoleModalBtns = document.querySelectorAll('.close-modal-change-role, .close-modal-change-role-btn');
+    closeChangeRoleModalBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (changeRoleModal) changeRoleModal.style.display = 'none';
+            currentUserToChangeRole = null;
+            newRoleToSet = null;
+        });
+    });
+
+    const confirmChangeRoleBtn = document.getElementById('confirmChangeRoleBtn');
+    if (confirmChangeRoleBtn) {
+        confirmChangeRoleBtn.addEventListener('click', async function() {
+            if (!currentUserToChangeRole || !newRoleToSet) return;
+
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            this.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/auth/users/${currentUserToChangeRole.id}/role`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role: newRoleToSet })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || "Error al actualizar rol");
+                }
+
+                // Actualizar el UI del select
+                currentUserToChangeRole.selectElement.value = newRoleToSet;
+                changeRoleModal.style.display = 'none';
+                
+                if (typeof showSuccess === 'function') showSuccess("Rol de usuario actualizado.");
+            } catch (error) {
+                console.error(error);
+                if (typeof showError === 'function') showError(error.message);
+                changeRoleModal.style.display = 'none';
+            } finally {
+                this.innerHTML = originalText;
+                this.disabled = false;
+                currentUserToChangeRole = null;
+                newRoleToSet = null;
+            }
+        });
+    }
+
 });

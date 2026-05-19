@@ -5,12 +5,15 @@ Endpoints de autenticación (login y registro).
 from datetime import timedelta
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Response
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.db.session import get_db
 from app.models.user import User
+from app.schemas.user import UserCreate, UserResponse, UserLogin, RoleUpdate
 from app.schemas.user import UserCreate, UserResponse, UserLogin, RoleUpdate
 from app.schemas.token import Token
 from app.core.security import hash_password, verify_password, create_access_token
