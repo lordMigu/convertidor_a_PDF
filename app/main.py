@@ -34,7 +34,7 @@ TEMP_DIR.mkdir(exist_ok=True)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Gestiona el ciclo de vida de la aplicación."""
-    logger.info("🚀 Iniciando aplicación modular de conversión...")
+    logger.info("🚀 Iniciando api de conversion de archivos...")
     
     # Asegurar que las tablas existan
     async with engine.begin() as conn:
