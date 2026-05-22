@@ -77,6 +77,43 @@ class RoleUpdate(BaseModel):
     }
 
 
+class UserStatusUpdate(BaseModel):
+    """
+    Esquema para actualizar el estado de un usuario.
+    """
+    is_active: bool = Field(
+        ...,
+        description="Nuevo estado del usuario: True (activo) o False (inactivo)"
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {"is_active": True}
+        }
+    }
+
+
+class UserUpdate(BaseModel):
+    """
+    Esquema para actualizar rol y estado de un usuario simultáneamente.
+    """
+    role: Optional[str] = Field(
+        None,
+        pattern="^(admin|user)$",
+        description="Nuevo rol del usuario (opcional)"
+    )
+    is_active: Optional[bool] = Field(
+        None,
+        description="Nuevo estado del usuario (opcional)"
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {"role": "admin", "is_active": True}
+        }
+    }
+
+
 class UserResponse(UserBase):
     """
     Esquema para la respuesta del usuario (lectura).

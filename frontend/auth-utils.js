@@ -6,6 +6,7 @@ const AUTH_CONFIG = {
     API_URL: window.APP_CONFIG ? window.APP_CONFIG.API_BASE_URL : 'http://localhost:8000',
     TOKEN_KEY: 'eva-access-token',
     USER_KEY: 'eva-user-data',
+    LOGOUT_MESSAGE_KEY: 'eva-logout-message',
     USE_SIMULATION: false
 };
 
@@ -17,6 +18,18 @@ function saveToken(token) {
 // Obtener token JWT del localStorage
 function getToken() {
     return localStorage.getItem(AUTH_CONFIG.TOKEN_KEY);
+}
+
+// Guardar mensaje de logout
+function setLogoutMessage(message) {
+    localStorage.setItem(AUTH_CONFIG.LOGOUT_MESSAGE_KEY, message);
+}
+
+// Obtener mensaje de logout
+function getLogoutMessage() {
+    const message = localStorage.getItem(AUTH_CONFIG.LOGOUT_MESSAGE_KEY);
+    localStorage.removeItem(AUTH_CONFIG.LOGOUT_MESSAGE_KEY);
+    return message;
 }
 
 /**

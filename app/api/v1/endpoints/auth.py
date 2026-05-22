@@ -5,16 +5,13 @@ Endpoints de autenticación (login y registro).
 from datetime import timedelta
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Response
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserResponse, UserLogin, RoleUpdate
-from app.schemas.user import UserCreate, UserResponse, UserLogin, RoleUpdate
+from app.schemas.user import UserCreate, UserResponse, UserLogin, RoleUpdate, UserUpdate, UserStatusUpdate
 from app.schemas.token import Token
 from app.core.security import hash_password, verify_password, create_access_token
 from app.core.config import get_settings
@@ -231,6 +228,9 @@ async def delete_user(
     Devuelve 204 No Content en caso de éxito.
     """
 
+    from app.models.document import Document, Permission, Version
+    from sqlalchemy import delete
+
     stmt = select(User).where(User.id == user_id)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
@@ -238,7 +238,24 @@ async def delete_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
 
-    db.delete(user)
+    # 1. Eliminar permisos del usuario (como invitado)
+    await db.execute(delete(Permission).where(Permission.user_id == user_id))
+
+    # 2. Buscar documentos del usuario para limpiarlos
+    docs_stmt = select(Document.id).where(Document.user_id == user_id)
+    docs_result = await db.execute(docs_stmt)
+    doc_ids = docs_result.scalars().all()
+
+    if doc_ids:
+        # Eliminar versiones de los documentos del usuario
+        await db.execute(delete(Version).where(Version.document_id.in_(doc_ids)))
+        # Eliminar permisos asociados a esos documentos
+        await db.execute(delete(Permission).where(Permission.document_id.in_(doc_ids)))
+        # Eliminar los documentos
+        await db.execute(delete(Document).where(Document.id.in_(doc_ids)))
+
+    # Finalmente, eliminar el usuario
+    await db.delete(user)
     await db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -283,6 +300,82 @@ async def change_user_role(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Rol inválido")
 
     user.role = new_role
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    return UserResponse.from_orm(user)
+
+
+@router.patch("/users/{user_id}/status", response_model=UserResponse)
+async def change_user_status(
+    user_id: int,
+    payload: UserStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(deps.get_current_admin),
+) -> UserResponse:
+    """
+    Cambia el estado de un usuario (activo/inactivo). Requiere admin autenticado.
+    No permite desactivar al usuario actual.
+    """
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    # Protección: No permitir desactivar al usuario actual
+    if payload.is_active is False and user.id == current_admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="No puedes desactivar tu propia cuenta. Debes mantener al menos un administrador activo."
+        )
+
+    # Aplicar cambio de estado
+    user.is_active = payload.is_active
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    return UserResponse.from_orm(user)
+
+
+@router.patch("/users/{user_id}", response_model=UserResponse)
+async def update_user(
+    user_id: int,
+    payload: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(deps.get_current_admin),
+) -> UserResponse:
+    """
+    Actualiza rol y/o estado de un usuario. Requiere admin autenticado.
+    Acepta uno o ambos parámetros: role, is_active
+    """
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+    # Protección: No permitir desactivar al usuario actual
+    if payload.is_active is False and user.id == current_admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="No puedes desactivar tu propia cuenta. Debes mantener al menos un administrador activo."
+        )
+
+    # Actualizar rol si se proporciona
+    if payload.role:
+        if payload.role not in ("admin", "user"):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Rol inválido")
+        user.role = payload.role
+
+    # Actualizar estado si se proporciona
+    if payload.is_active is not None:
+        user.is_active = payload.is_active
+
     db.add(user)
     await db.commit()
     await db.refresh(user)

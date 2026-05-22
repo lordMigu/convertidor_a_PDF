@@ -24,7 +24,7 @@ cd proyecto
 
 ### 2. Crear entorno virtual
 ```bash
-python -m venv venv
+python -m venv env
 
 # En Windows
 venv\Scripts\activate

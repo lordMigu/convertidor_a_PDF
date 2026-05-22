@@ -75,6 +75,19 @@ document.addEventListener('DOMContentLoaded', function () {
             e.stopPropagation();
         });
 
+        // Mostrar opción de gestión de usuarios si es admin
+        const adminDivider = document.getElementById('adminDivider');
+        const usersAdminDropdownBtn = document.getElementById('usersAdminDropdownBtn');
+        if (userData && userData.role === 'admin' && adminDivider && usersAdminDropdownBtn) {
+            adminDivider.style.display = 'block';
+            usersAdminDropdownBtn.style.display = 'block';
+
+            usersAdminDropdownBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                window.location.href = 'users-management.html';
+            });
+        }
+
         // Manejar tecla Escape
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
