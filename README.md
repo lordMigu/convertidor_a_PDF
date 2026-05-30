@@ -14,6 +14,28 @@ Backend moderno y escalable para un Sistema de Gestión Documental usando **Fast
 - **passlib + bcrypt** - Hash seguro de contraseñas
 - **Pydantic V2** - Validación de datos
 
+## 📂 Estructura del Proyecto
+
+```text
+.
+├── app/                  # Backend FastAPI
+│   ├── api/              # Rutas (endpoints) de la API
+│   ├── core/             # Configuraciones principales y seguridad
+│   ├── db/               # Configuración de Base de Datos y Sesiones
+│   ├── models/           # Modelos de Base de Datos (SQLAlchemy)
+│   ├── schemas/          # Esquemas Pydantic (Validación de datos)
+│   ├── services/         # Lógica de negocio (Emails, PDF, etc.)
+│   └── main.py           # Punto de entrada de la aplicación
+├── frontend/             # Interfaz de Usuario (HTML/CSS/JS)
+│   ├── modules/          # Módulos separados (Historia, Upload, Compartir, etc.)
+│   ├── index.html        # Página principal (Conversor)
+│   ├── login.html        # Página de autenticación
+│   └── script.js         # Lógica central del cliente
+├── tests/                # Pruebas unitarias y de integración
+├── uploads/              # Carpeta donde se almacenan temporalmente los archivos PDF
+├── pyproject.toml        # Configuración del proyecto
+└── requirements.txt      # Dependencias de Python
+```
 ## 🚀 Instalación
 
 ### 1. Clonar el repositorio
@@ -73,6 +95,27 @@ y usar el archivo .p12, suele llamarse "certificado" o similar.
 | GET | /api/v1/auth/me | Obtener usuario actual (requiere token) |
 | POST | /api/v1/auth/password-recovery | Solicitar restablecimiento de contraseña |
 | POST | /api/v1/auth/reset-password | Restablecer contraseña con token |
+
+## Crear un certificado .p12 para probar la funcionalidad de firmar digitalmente un pdf
+
+Si no tienes un .p12 de prueba
+
+Puedes generar uno tú mismo con OpenSSL (en Linux):
+
+```bash
+openssl req -x509 -newkey rsa:2048 \
+-keyout clave.key \
+-out certificado.crt \
+-days 365 \
+-nodes
+
+openssl pkcs12 -export \
+-out certificado.p12 \
+-inkey clave.key \
+-in certificado.crt
+```
+
+Esto crea un certificado autofirmado únicamente para pruebas.
 
 ### Registro de Usuario
 
