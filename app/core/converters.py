@@ -7,6 +7,17 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional
 
+# reportlab – usado para convertir .txt a PDF de forma nativa (sin Office)
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    from reportlab.lib.enums import TA_LEFT
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
+
 # Importar librerías específicas según disponibilidad
 try:
     if platform.system() == "Windows":
@@ -18,6 +29,58 @@ try:
         WINDOWS_LIBS_AVAILABLE = False
 except ImportError:
     WINDOWS_LIBS_AVAILABLE = False
+
+def _txt_to_pdf_sync(source_path: Path, pdf_path: Path) -> None:
+    """
+    Convierte un archivo de texto plano a PDF usando reportlab.
+    Funciona en cualquier plataforma sin necesidad de Office o LibreOffice.
+    """
+    if not REPORTLAB_AVAILABLE:
+        raise RuntimeError(
+            "reportlab no está instalado. Ejecuta: pip install reportlab"
+        )
+
+    # Leer el texto con detección automática de encoding
+    for encoding in ("utf-8-sig", "utf-8", "latin-1", "cp1252"):
+        try:
+            text = source_path.read_text(encoding=encoding)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        raise ValueError(f"No se pudo leer '{source_path.name}': encoding desconocido")
+
+    # Crear el documento PDF
+    doc = SimpleDocTemplate(
+        str(pdf_path),
+        pagesize=A4,
+        leftMargin=2 * cm,
+        rightMargin=2 * cm,
+        topMargin=2 * cm,
+        bottomMargin=2 * cm,
+    )
+
+    styles = getSampleStyleSheet()
+    style = styles["Normal"]
+    style.fontName = "Courier"   # Monospace para texto plano
+    style.fontSize = 10
+    style.leading = 14
+    style.alignment = TA_LEFT
+
+    story = []
+    for line in text.splitlines():
+        # Escapar caracteres especiales de XML que usa reportlab
+        safe_line = (
+            line
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+        )
+        story.append(Paragraph(safe_line if safe_line.strip() else "&nbsp;", style))
+        story.append(Spacer(1, 2))
+
+    doc.build(story)
+
 
 class ConverterStrategy(ABC):
     @abstractmethod
@@ -43,9 +106,16 @@ class WindowsConverter(ConverterStrategy):
             
         elif ext in [".pptx", ".ppt"]:
             await self._convert_powerpoint(source_path, pdf_path)
-            
+
+        elif ext == ".txt":
+            # reportlab: sin dependencia de Office ni COM
+            await asyncio.to_thread(_txt_to_pdf_sync, source_path, pdf_path)
+
         else:
-            raise ValueError(f"Extensión no soportada en Windows: {ext}")
+            raise ValueError(
+                f"Extensión '{ext}' no soportada en Windows. "
+                "Formatos admitidos: .docx, .xlsx, .xls, .pptx, .ppt, .txt"
+            )
             
         return pdf_path
 
@@ -107,8 +177,15 @@ class WindowsConverter(ConverterStrategy):
 
 class LinuxConverter(ConverterStrategy):
     async def convert(self, source_path: Path, target_dir: Path) -> Path:
-        # Usar LibreOffice headless
-        # soffice --headless --convert-to pdf --outdir <target_dir> <source_path>
+        ext = source_path.suffix.lower()
+        pdf_path = target_dir / f"{source_path.stem}.pdf"
+
+        # .txt se convierte con reportlab (no requiere LibreOffice)
+        if ext == ".txt":
+            await asyncio.to_thread(_txt_to_pdf_sync, source_path, pdf_path)
+            return pdf_path
+
+        # El resto usa LibreOffice headless
         cmd = [
             "soffice",
             "--headless",
@@ -116,23 +193,22 @@ class LinuxConverter(ConverterStrategy):
             "--outdir", str(target_dir),
             str(source_path)
         ]
-        
+
         process = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
-        
+
         stdout, stderr = await process.communicate()
-        
+
         if process.returncode != 0:
             raise RuntimeError(f"Error de LibreOffice: {stderr.decode()}")
-            
-        # LibreOffice genera el archivo en target_dir con el mismo nombre y extensión .pdf
+
         expected_pdf = target_dir / f"{source_path.stem}.pdf"
         if not expected_pdf.exists():
-             raise FileNotFoundError(f"LibreOffice no generó el archivo esperado: {expected_pdf}")
-             
+            raise FileNotFoundError(f"LibreOffice no generó el archivo esperado: {expected_pdf}")
+
         return expected_pdf
 
 class ConverterFactory:
